@@ -2,6 +2,7 @@
 import { computed, ref, watch } from 'vue'
 import BotTile from '@/components/BotTile.vue'
 import Customizer from '@/components/Customizer.vue'
+import LabPicker from '@/components/LabPicker.vue'
 import BloubBot from '@/components/BloubBot.vue'
 import ExportBar from '@/components/ExportBar.vue'
 import CycleDialog from '@/components/CycleDialog.vue'
@@ -860,6 +861,18 @@ watch(
             view === 'reglages' && !preview && 'avatar--geant'
           ]"
         >
+          <!--
+            Le suivi du pointeur est actif partout SAUF sur les animations : la
+            vue « animations » est celle qu'on regarde pour juger un montage, et
+            c'est la meme image que l'export en tire. Un regard qui depend de la
+            position de la souris y rendrait la previsualisation infidele au
+            fichier produit — `capture.ts` monte son lecteur hors ecran sans
+            `follow`, donc les deux divergeraient.
+
+            Ailleurs il n'y a rien a fausser, et `aim()` se garde tout seul : il
+            relache des que l'etat n'a pas de visage de repos (`baseFace`), donc
+            un `swirl` ou une orbite garde la pose relevee sur la video.
+          -->
           <BloubBot
             ref="bot"
             class="h-auto max-w-full"
@@ -872,7 +885,7 @@ watch(
             :shape="forme"
             :color="color"
             :expression="humeur ?? expression"
-            :follow="view === 'reglages'"
+            :follow="view !== 'animations'"
             :gaze="intro ? INTRO_GAZE : null"
           />
         </div>
@@ -942,9 +955,18 @@ watch(
       <!-- largeur fixe, identique dans les deux vues : sinon la scene se decale
            au changement d'onglet. w-80 est la contrainte du personnalisateur
            (grille de 4 vignettes), le panneau d'animations s'y adapte. -->
+      <!--
+        Le panneau defile SUR LUI-MEME au-dela de 64rem.
+
+        La page, elle, ne defile toujours pas (`#app { overflow: clip }`) : c'est ce qui
+        permet aux elements fixes de tenir. Mais un panneau de commandes n'a pas de hauteur
+        garantie — la verrerie en ajoute quatre-vingts pixels de plus que la
+        personnalisation — et sans cette borne le bas se faisait simplement couper, sans
+        barre ni indice.
+      -->
       <aside
         v-if="!preview"
-        class="panneau scene__droite w-full lg:w-80 lg:shrink-0"
+        class="panneau scene__droite w-full lg:max-h-[calc(100dvh_-_3rem)] lg:w-80 lg:shrink-0 lg:overflow-x-visible lg:overflow-y-auto"
         :class="droite ? 'panneau--ouvert max-lg:order-2' : 'max-lg:hidden'"
       >
         <!-- palette : une vignette s'ajoute a la fin du montage -->
@@ -964,6 +986,15 @@ watch(
               @click="addBlock(s.id)"
             />
           </div>
+        </template>
+
+        <!-- verrerie : le meme etat, restreint aux quatre pieces de `LAB_SHAPES` -->
+        <template v-else-if="view === 'labo'">
+          <LabPicker
+            v-model:shape="shape"
+            v-model:color="color"
+            v-model:expression="expression"
+          />
         </template>
 
         <!-- personnalisation -->

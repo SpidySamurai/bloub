@@ -239,7 +239,7 @@ const DICHOTOMIE = 8
  * reapparaitre 34 debordements. Ici le resultat ne depend pas d'une convergence : chaque
  * direction est resolue exactement, au pas de dichotomie pres.
  */
-function resous(epreuves: Epreuve[]): { x: number; y: number } {
+function resous(epreuves: Epreuve[], ancre: { x: number; y: number }): { x: number; y: number } {
   if (!epreuves.length) return { x: 0, y: 0 }
 
   /** La marge la plus serree sur toutes les epreuves, pour une translation donnee. */
@@ -268,6 +268,18 @@ function resous(epreuves: Epreuve[]): { x: number; y: number } {
     mx -= e.x / emps.length
     my -= e.y / emps.length
   }
+  /*
+   * Le point le plus degage est le CENTRE DU CORPS, et pour presque toutes les formes
+   * c'est l'origine du profil : `mx, my` y amene la paire. Une forme qui declare
+   * `ancreVisage` dit que le sien est ailleurs — la fiole est large sous l'origine et
+   * etroite au-dessus — et la course s'etend pour y arriver.
+   *
+   * L'ancre deplace la CIBLE, elle n'est jamais ajoutee au resultat : c'est ce qui
+   * distingue cette exception d'un decalage code en dur. Le solveur cherche toujours la
+   * plus petite translation qui tient ; on ne fait que lui dire ou chercher.
+   */
+  mx += ancre.x * R
+  my += ancre.y * R
   const course = Math.max(0.35 * R, Math.hypot(mx, my) * 1.25)
 
   // Plafond de la demande : ce que la forme offre en son centre, toujours atteignable.
@@ -344,9 +356,19 @@ function resous(epreuves: Epreuve[]): { x: number; y: number } {
  * entre DEUX CONSTANTES, ce qui est monotone par construction. Ce qui tremblait, c'etait
  * de re-resoudre le probleme sur un regard en cours d'interpolation.
  */
-function visageDe(def: StateDef, pose: Pose, expr: BotExpression | null): Visage {
-  if (def.baseFace && expr) return { gaze: expr.gaze, split: expr.split, eyes: expr.eyes }
-  return { gaze: pose.gaze, split: pose.split, eyes: pose.eyes }
+function visageDe(
+  def: StateDef,
+  pose: Pose,
+  expr: BotExpression | null,
+  ecart: number
+): Visage {
+  const v =
+    def.baseFace && expr
+      ? { gaze: expr.gaze, split: expr.split, eyes: expr.eyes }
+      : { gaze: pose.gaze, split: pose.split, eyes: pose.eyes }
+  // Le resserrement de la forme s'applique APRES le choix du visage, sinon il ne
+  // toucherait pas les expressions, qui reposent leur propre ecart.
+  return ecart === 1 ? v : { ...v, split: v.split * ecart }
 }
 
 /** Les dates a echantillonner dans un etat : une seule si sa pose ne bouge pas. */
@@ -360,17 +382,22 @@ function dates(def: StateDef): number[] {
 }
 
 /** Le decalage d'une forme sur un etat et une expression, derive comprise. */
+/** Zero, la valeur commune a tout ce qui n'a rien a corriger. */
+const NUL = { x: 0, y: 0 } as const
+
 function decalagePour(
   def: StateDef,
   radii: number[],
-  expr: BotExpression | null
+  expr: BotExpression | null,
+  ancre: { x: number; y: number },
+  ecart: number
 ): { x: number; y: number } {
   const epreuves: Epreuve[] = []
   for (const t of dates(def)) {
     const pose = def.pose(t)
     const contour = toPoints({ ...pose.sil, radii }, R)
     const calContour = toPoints(pose.sil, R)
-    const v = visageDe(def, pose, expr)
+    const v = visageDe(def, pose, expr, ecart)
     // Les quatre coins de la derive bornent la pose nominale, qui est leur centre : la
     // tester en plus ne changerait aucune marge et coute une epreuve sur cinq.
     const coins: Visage[] = []
@@ -391,11 +418,8 @@ function decalagePour(
       })
     }
   }
-  return resous(epreuves)
+  return resous(epreuves, ancre)
 }
-
-/** Zero, la valeur commune a tout ce qui n'a rien a corriger. */
-const NUL = { x: 0, y: 0 } as const
 
 /** Clef d'une entree : l'etat, et l'expression quand l'etat l'accepte. */
 const clef = (state: StateId, expr: string | null) => `${state}|${expr ?? ''}`
@@ -419,7 +443,10 @@ function batir(): Map<number[], Map<string, { x: number; y: number }>> {
       if (!def.baseBody) continue
       const expressions = def.baseFace ? [null, ...EXPRESSIONS] : [null]
       for (const expr of expressions) {
-        par.set(clef(def.id, expr?.id ?? null), decalagePour(def, forme.radii, expr))
+        par.set(
+          clef(def.id, expr?.id ?? null),
+          decalagePour(def, forme.radii, expr, forme.ancreVisage ?? NUL, forme.ecartVisage ?? 1)
+        )
       }
     }
     return [forme.radii, par]

@@ -25,7 +25,8 @@ const zh: typeof fr = {
     nav: '版块',
     customize: '个性化',
     animations: '动画',
-    settings: '设置'
+    settings: '设置',
+    lab: '玻璃器皿'
   },
 
   panel: {
@@ -135,6 +136,23 @@ const zh: typeof fr = {
     swirl: '漩涡'
   },
 
+  lab: {
+    shape: '玻璃器皿',
+    expression: '表情',
+    color: '颜色',
+    real: '实际尺寸',
+    size: '显示尺寸',
+    px: '{n} 像素',
+    eyes: '眼睛',
+    exception: '例外',
+    eyes_plain: '镂空',
+    eyes_anchored: '镂空，面部下移',
+    eyes_posed: '叠加绘制',
+    why_plain: '瓶身足够宽：标准面部无需修正即可容纳。',
+    why_anchored: '底宽颈窄。锚点把求解器的目标移入瓶身，偏移量仍由求解器计算。',
+    why_posed: '太窄，无法镂空：眼睛叠加绘制，仅在溢出处描边。'
+  },
+
   shapes: {
     cercle: '圆形',
     galet: '卵石',
@@ -143,7 +161,11 @@ const zh: typeof fr = {
     triangle: '三角形',
     hexagone: '六边形',
     nuage: '云朵',
-    goutte: '水滴'
+    goutte: '水滴',
+    etoile: '星形',
+    fiole: '锥形瓶',
+    eprouvette: '试管',
+    ballon: '圆底烧瓶'
   },
 
   colors: {
@@ -158,7 +180,13 @@ const zh: typeof fr = {
     bleu: '蓝色',
     violet: '紫色',
     rose: '粉色',
-    gris: '灰色'
+    gris: '灰色',
+    citron: '青柠',
+    sapin: '松绿',
+    cyan: '青色',
+    indigo: '靛蓝',
+    prune: '梅紫',
+    ardoise: '石板灰'
   },
 
   expressions: {

@@ -2,7 +2,7 @@
 import { computed, ref } from 'vue'
 import { t } from '@/i18n'
 
-export type ViewId = 'animations' | 'personnaliser' | 'reglages'
+export type ViewId = 'animations' | 'personnaliser' | 'labo' | 'reglages'
 
 const view = defineModel<ViewId>({ default: 'personnaliser' })
 
@@ -12,6 +12,7 @@ const view = defineModel<ViewId>({ default: 'personnaliser' })
  */
 const ITEMS = computed<Array<{ id: ViewId; label: string }>>(() => [
   { id: 'personnaliser', label: t('rail.customize') },
+  { id: 'labo', label: t('rail.lab') },
   { id: 'animations', label: t('rail.animations') },
   { id: 'reglages', label: t('rail.settings') }
 ])
@@ -75,8 +76,29 @@ const muted = ref<ViewId | null>(null)
 
             Animations : le clap de Solar (`solar:clapperboard-play-bold`).
           -->
+          <!--
+            Verrerie : SEULE icone du rail qui ne vient pas d'une bibliotheque. C'est la
+            silhouette de la fiole, aux memes coordonnees que `FIOLE_POLY` (`skins.ts`),
+            simplement mise a l'echelle de la boite 24. L'icone d'une vue qui choisit des
+            formes doit etre une de ces formes, sinon elle ment sur ce qu'elle ouvre.
+          -->
           <svg
-            v-if="item.id === 'animations'"
+            v-if="item.id === 'labo'"
+            width="18"
+            height="18"
+            viewBox="-1.15 -1.15 2.3 2.3"
+            aria-hidden="true"
+          >
+            <path
+              d="M -0.82 0.48 L 0.82 0.48 L 0.82 0.24 L 0.33 -0.74 L 0.33 -1.04 L -0.33 -1.04 L -0.33 -0.74 L -0.82 0.24 Z"
+              fill="currentColor"
+              stroke="currentColor"
+              stroke-width="0.12"
+              stroke-linejoin="round"
+            />
+          </svg>
+          <svg
+            v-else-if="item.id === 'animations'"
             width="18"
             height="18"
             viewBox="0 0 24 24"

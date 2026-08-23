@@ -32,7 +32,8 @@ export default {
     nav: 'Sections',
     customize: 'Personnaliser',
     animations: 'Animations',
-    settings: 'Réglages'
+    settings: 'Réglages',
+    lab: 'Verrerie'
   },
 
   panel: {
@@ -157,6 +158,25 @@ export default {
     swirl: 'Tourbillon'
   },
 
+  lab: {
+    shape: 'Verrerie',
+    expression: 'Expression',
+    color: 'Couleur',
+    real: 'Taille reelle',
+    size: 'Taille d affichage',
+    px: '{n} px',
+    eyes: 'Yeux',
+    exception: 'Exception',
+    eyes_plain: 'perces',
+    eyes_anchored: 'perces, visage ancre',
+    eyes_posed: 'poses par-dessus',
+    why_plain: 'Le corps est assez large : le visage nominal y tient sans rien corriger.',
+    why_anchored:
+      'Large en bas, etroite en haut. L ancre deplace la cible du solveur vers le corps ; le decalage, lui, reste calcule.',
+    why_posed:
+      'Trop etroite pour percer les yeux : ils sont dessines dessus, cernes seulement la ou ils depassent.'
+  },
+
   shapes: {
     cercle: 'Cercle',
     galet: 'Galet',
@@ -165,7 +185,11 @@ export default {
     triangle: 'Triangle',
     hexagone: 'Hexagone',
     nuage: 'Nuage',
-    goutte: 'Goutte'
+    goutte: 'Goutte',
+    etoile: 'Etoile',
+    fiole: 'Fiole',
+    eprouvette: 'Eprouvette',
+    ballon: 'Ballon'
   },
 
   colors: {
@@ -180,7 +204,13 @@ export default {
     bleu: 'Bleu',
     violet: 'Violet',
     rose: 'Rose',
-    gris: 'Gris'
+    gris: 'Gris',
+    citron: 'Citron',
+    sapin: 'Sapin',
+    cyan: 'Cyan',
+    indigo: 'Indigo',
+    prune: 'Prune',
+    ardoise: 'Ardoise'
   },
 
   expressions: {

@@ -1,0 +1,7 @@
+export { BotEngine } from '@/bot/engine'
+export { SHAPES, SHAPE_BY_ID, COLORS, COLOR_BY_ID } from '@/bot/skins'
+export { LAB_SHAPES, LAB_IDS, LAB_DEFAUT, formeLabOuDefaut } from '@/bot/lab'
+export { STATES, SEQUENCE, POSES } from '@/bot/states'
+export { EXPRESSIONS } from '@/bot/expressions'
+export { RAYON, DEMI_VIEWBOX } from '@/bot/repere'
+export { radiusAtAngle, toPoints, closedPath } from '@/bot/shape'

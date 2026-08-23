@@ -1,0 +1,368 @@
+<title>lab2next Glassware</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap">
+<style>
+  :root {
+    --fondo: #eef0f1; --panel: #ffffff; --hueco: #f7f8f9;
+    --tinta: #14181b; --suave: #666d74; --linea: #dcdfe3;
+    --acento: #a8571c; --acento-suave: #f2e5d8;
+    --pieza: #14181b; --papel: #ffffff;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --fondo: #0e1113; --panel: #171b1e; --hueco: #121618;
+      --tinta: #e8eaec; --suave: #939aa1; --suave: #939aa1; --linea: #2a3034;
+      --acento: #e08a44; --acento-suave: #33240f;
+      --pieza: #e8eaec; --papel: #171b1e;
+    }
+  }
+  :root[data-theme="dark"] {
+    --fondo: #0e1113; --panel: #171b1e; --hueco: #121618;
+    --tinta: #e8eaec; --suave: #939aa1; --linea: #2a3034;
+    --acento: #e08a44; --acento-suave: #33240f;
+    --pieza: #e8eaec; --papel: #171b1e;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--fondo); color: var(--tinta);
+    font-family: Archivo, 'Helvetica Neue', Arial, sans-serif;
+    font-size: 15px; line-height: 1.5;
+  }
+  .marco { max-width: 1120px; margin: 0 auto; padding: 34px 22px 72px; }
+
+  header { margin-bottom: 28px; }
+  .eyebrow {
+    font-family: 'Space Mono', ui-monospace, monospace; font-size: 11px;
+    letter-spacing: .18em; text-transform: uppercase; color: var(--acento); margin-bottom: 8px;
+  }
+  h1 { font-size: 28px; font-weight: 700; letter-spacing: -.02em; margin: 0 0 8px; text-wrap: balance; }
+  .lede { color: var(--suave); max-width: 60ch; margin: 0; text-wrap: pretty; }
+
+  .cols { display: grid; grid-template-columns: minmax(0, 1fr) 372px; gap: 22px; align-items: start; }
+  @media (max-width: 880px) { .cols { grid-template-columns: minmax(0, 1fr); } }
+
+  .caja { background: var(--panel); border: 1px solid var(--linea); border-radius: 14px; }
+  .escena { padding: 26px; display: flex; flex-direction: column; gap: 22px; }
+  .tablero {
+    background: var(--hueco); border-radius: 10px; padding: 26px;
+    display: flex; align-items: center; justify-content: center; min-height: 300px;
+  }
+
+  .escalas { display: flex; gap: 12px; }
+  .escala {
+    flex: 1; background: var(--hueco); border-radius: 10px; padding: 14px;
+    display: flex; align-items: center; gap: 14px;
+  }
+  .escala .medida {
+    font-family: 'Space Mono', ui-monospace, monospace; font-size: 11px;
+    color: var(--suave); letter-spacing: .04em;
+  }
+  .escala strong { display: block; color: var(--tinta); font-family: Archivo; font-size: 13px; font-weight: 600; }
+
+  .grupo { padding: 20px 22px; display: flex; flex-direction: column; gap: 12px; border-bottom: 1px solid var(--linea); }
+  .grupo:last-child { border-bottom: 0; }
+  .grupo > h2 {
+    font-family: 'Space Mono', ui-monospace, monospace; font-size: 11px; font-weight: 700;
+    letter-spacing: .14em; text-transform: uppercase; color: var(--suave); margin: 0;
+    display: flex; justify-content: space-between; align-items: baseline; gap: 8px;
+  }
+  .grupo > h2 span { font-weight: 400; letter-spacing: .04em; text-transform: none; }
+
+  .formas { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+  .caras { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+  .colores { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px; }
+
+  button.op {
+    appearance: none; background: var(--hueco); border: 1.5px solid transparent;
+    border-radius: 9px; padding: 8px 4px 6px; cursor: pointer; color: inherit;
+    display: flex; flex-direction: column; align-items: center; gap: 5px;
+    transition: border-color .14s ease, background .14s ease;
+    font-family: inherit;
+  }
+  button.op:hover { border-color: var(--linea); }
+  button.op[aria-pressed="true"] { border-color: var(--acento); background: var(--acento-suave); }
+  button.op:focus-visible { outline: 2px solid var(--acento); outline-offset: 2px; }
+  button.op .nom { font-size: 10.5px; color: var(--suave); line-height: 1.25; text-align: center; }
+  button.op[aria-pressed="true"] .nom { color: var(--tinta); font-weight: 500; }
+
+  button.col {
+    appearance: none; border: 0; background: none; padding: 3px; cursor: pointer;
+    border-radius: 999px; box-shadow: inset 0 0 0 1.5px transparent;
+    transition: box-shadow .14s ease;
+  }
+  button.col:hover { box-shadow: inset 0 0 0 1.5px var(--linea); }
+  button.col[aria-pressed="true"] { box-shadow: inset 0 0 0 2px var(--acento); }
+  button.col:focus-visible { outline: 2px solid var(--acento); outline-offset: 1px; }
+  button.col i {
+    display: block; aspect-ratio: 1; border-radius: 999px;
+    box-shadow: inset 0 0 0 1px rgba(0,0,0,.12);
+  }
+
+  .chip {
+    font-family: 'Space Mono', ui-monospace, monospace; font-size: 10px;
+    padding: 2px 6px; border-radius: 5px; background: var(--acento-suave); color: var(--acento);
+    letter-spacing: .03em; white-space: nowrap;
+  }
+  .chip.neutro { background: var(--hueco); color: var(--suave); }
+
+  .ficha { padding: 18px 22px 22px; display: flex; flex-direction: column; gap: 10px; }
+  .ficha dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 6px 14px; font-size: 13px; }
+  .ficha dt { color: var(--suave); }
+  .ficha dd { margin: 0; font-family: 'Space Mono', ui-monospace, monospace; font-size: 12px; font-variant-numeric: tabular-nums; }
+
+  pre {
+    margin: 0; background: var(--hueco); border-radius: 10px; padding: 14px 16px;
+    font-family: 'Space Mono', ui-monospace, monospace; font-size: 12px; line-height: 1.65;
+    overflow-x: auto; color: var(--tinta);
+  }
+  pre .k { color: var(--acento); }
+
+  footer { margin-top: 26px; color: var(--suave); font-size: 12.5px; max-width: 72ch; text-wrap: pretty; }
+  code { font-family: 'Space Mono', ui-monospace, monospace; font-size: .92em; }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<div class="marco">
+  <header>
+    <div class="eyebrow">lab2next · configurable surface</div>
+    <h1>lab2next Glassware</h1>
+    <p class="lede">
+      The four pieces the product exposes, with the same expressions and palette the engine
+      already renders. Everything here comes from <code>engine.sample()</code>.
+    </p>
+  </header>
+
+  <div class="cols">
+    <div class="caja escena">
+      <div class="tablero" id="tablero"></div>
+      <div class="escalas">
+        <div class="escala">
+          <div id="mini40"></div>
+          <div>
+            <strong>Trigger</strong>
+            <div class="medida">40 px · actual size</div>
+          </div>
+        </div>
+        <div class="escala">
+          <div id="mini24"></div>
+          <div>
+            <strong>Dense</strong>
+            <div class="medida">24 px · compact bar</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="caja">
+        <div class="grupo">
+          <h2>Shape <span id="n-formas"></span></h2>
+          <div class="formas" id="formas"></div>
+        </div>
+        <div class="grupo">
+          <h2>Expression <span id="n-caras"></span></h2>
+          <div class="caras" id="caras"></div>
+        </div>
+        <div class="grupo">
+          <h2>Colour <span id="n-colores"></span></h2>
+          <div class="colores" id="colores"></div>
+        </div>
+        <div class="ficha">
+          <dl id="ficha"></dl>
+          <pre id="config"></pre>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer id="pie"></footer>
+</div>
+
+<script src="./bloub-inline.js"></script>
+<script>
+(function () {
+  var B = window.Bloub;
+  var VB = B.DEMI_VIEWBOX, R = B.RAYON;
+  var $ = function (id) { return document.getElementById(id); };
+
+  var estado = { forma: B.LAB_DEFAUT, cara: 'neutre', color: 'encre' };
+
+  // Etiquetas del catalogo de expresiones, en el idioma del producto.
+  var CARA = {
+    neutre: 'Neutral', attentif: 'Attentive', surpris: 'Surprised', excite: 'Excited',
+    heureux: 'Happy', hilare: 'Laughing', colere: 'Angry', triste: 'Sad',
+    effraye: 'Scared', mefiant: 'Suspicious', confus: 'Confused', curieux: 'Curious',
+    fier: 'Proud', timide: 'Shy', blase: 'Unimpressed', somnolent: 'Sleepy'
+  };
+
+  // Por qué cada pieza necesita —o no— una excepción. Es información, no adorno.
+  var NOTA = {
+    ballon:     { et: 'Round flask', chip: 'none',
+                  por: 'The bulb is as wide as a circle, so the nominal face fits as-is. This is why it is the default.' },
+    fiole:      { et: 'Erlenmeyer', chip: 'ancreVisage',
+                  por: 'Wide at the base, narrow at the neck. The anchor moves the solver\u2019s target down into the body \u2014 it does not place the eyes itself.' },
+    eprouvette: { et: 'Test tube', chip: 'yeuxPoses',
+                  por: 'Too narrow to punch the eyes through: they are drawn on top, outlined only where they overhang the silhouette.' },
+    goutte:     { et: 'Droplet', chip: 'none',
+                  por: 'Low, wide bulb \u2014 the radius pro-rata alone is enough to bring the face inside.' }
+  };
+
+  function motor(formaId, caraId) {
+    var f = B.SHAPE_BY_ID.get(formaId);
+    var ex = caraId ? B.EXPRESSIONS.filter(function (e) { return e.id === caraId; })[0] : null;
+    var e = new B.BotEngine(R, 'idle', f.radii, ex);
+    e.setShape(f.radii, 0, f.sansVisage || false, f.pts || null, f.ecartVisage || 1, f.yeuxPoses || false);
+    return { f: f, fr: e.sample(1) };
+  }
+
+  /*
+   * Reproduce las dos maneras de poner los ojos que tiene el motor.
+   *
+   * Perforados: agujeros en una mascara, se recortan solos en el borde.
+   * Posados: dibujados encima, y el cerco enmascarado por el EXTERIOR del cuerpo — asi
+   * existe unicamente donde el ojo asoma, y dos ojos que se solapan no cosen una costura.
+   */
+  function pintar(formaId, caraId, hex, px, uid) {
+    var m = motor(formaId, caraId), fr = m.fr, posados = !!m.f.yeuxPoses;
+    var ojos = fr.eyes.map(function (y) {
+      return '<path d="' + y.d + '" transform="' + y.matrix + '" opacity="' + y.alpha + '"';
+    });
+    var s = '<svg width="' + px + '" height="' + px + '" viewBox="'
+      + [-VB, -VB, VB * 2, VB * 2].join(' ') + '" role="img" aria-label="' + NOTA[formaId].et + '">';
+    s += '<defs>';
+    s += '<mask id="c' + uid + '" maskUnits="userSpaceOnUse" x="' + -VB + '" y="' + -VB
+      + '" width="' + VB * 2 + '" height="' + VB * 2 + '">';
+    s += '<path d="' + fr.bodyPath + '" fill="#fff"/>';
+    if (!posados) s += ojos.map(function (o) { return o + ' fill="#000"/>'; }).join('');
+    s += '</mask>';
+    if (posados) {
+      s += '<mask id="d' + uid + '" maskUnits="userSpaceOnUse" x="' + -VB + '" y="' + -VB
+        + '" width="' + VB * 2 + '" height="' + VB * 2 + '">';
+      s += '<rect x="' + -VB + '" y="' + -VB + '" width="' + VB * 2 + '" height="' + VB * 2 + '" fill="#fff"/>';
+      s += '<path d="' + fr.bodyPath + '" fill="#000"/></mask>';
+    }
+    s += '</defs>';
+    s += '<path d="' + fr.bodyPath + '" fill="var(--papel)"/>';
+    s += '<g mask="url(#c' + uid + ')"><rect x="' + -VB + '" y="' + -VB + '" width="' + VB * 2
+      + '" height="' + VB * 2 + '" fill="' + hex + '"/></g>';
+    if (posados) {
+      s += ojos.map(function (o) { return o + ' fill="var(--papel)"/>'; }).join('');
+      s += '<g mask="url(#d' + uid + ')">'
+        + ojos.map(function (o) { return o + ' fill="none" stroke="' + hex
+            + '" stroke-width="7" stroke-linejoin="round"/>'; }).join('')
+        + '</g>';
+    }
+    return s + '</svg>';
+  }
+
+  var lum = function (hex) {
+    var v = parseInt(hex.slice(1), 16);
+    return [16, 8, 0].map(function (k) {
+      var u = ((v >> k) & 255) / 255;
+      return u <= 0.03928 ? u / 12.92 : Math.pow((u + 0.055) / 1.055, 2.4);
+    }).reduce(function (a, x, i) { return a + x * [0.2126, 0.7152, 0.0722][i]; }, 0);
+  };
+  var contraste = function (a, b) {
+    var x = lum(a), y = lum(b);
+    return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05);
+  };
+
+  /*
+   * La pieza contra su fondo.
+   *
+   * Los dos extremos neutros de la paleta desaparecen sobre uno de los dos temas: `encre`
+   * sobre fondo oscuro, `creme` sobre fondo claro. bloub ya resuelve esto en su favicon
+   * — el cuerpo se invierte en tema oscuro — y aqui hace falta lo mismo, porque el color es
+   * una opcion del usuario y no podemos prohibirle la que se pierde.
+   *
+   * Se mide en vez de listar ids: cualquier color futuro con poco contraste queda cubierto.
+   */
+  var INVERTIDO = false;
+  function hexActual() {
+    var c = B.COLOR_BY_ID.get(estado.color);
+    var hex = c ? c.hex : '#14181b';
+    var fondo = getComputedStyle(document.body).getPropertyValue('--hueco').trim();
+    if (fondo && contraste(hex, fondo) < 1.6) {
+      INVERTIDO = true;
+      return getComputedStyle(document.body).getPropertyValue('--tinta').trim();
+    }
+    INVERTIDO = false;
+    return hex;
+  }
+
+  var n = 0;
+  function refrescar() {
+    var hex = hexActual();
+    $('tablero').innerHTML = pintar(estado.forma, estado.cara, hex, 240, 'big' + (n++));
+    $('mini40').innerHTML = pintar(estado.forma, estado.cara, hex, 40, 'm40' + (n++));
+    $('mini24').innerHTML = pintar(estado.forma, estado.cara, hex, 24, 'm24' + (n++));
+
+    document.querySelectorAll('[data-forma]').forEach(function (b) {
+      b.setAttribute('aria-pressed', b.dataset.forma === estado.forma);
+    });
+    document.querySelectorAll('[data-cara]').forEach(function (b) {
+      b.setAttribute('aria-pressed', (b.dataset.cara || null) === estado.cara);
+    });
+    document.querySelectorAll('[data-color]').forEach(function (b) {
+      b.setAttribute('aria-pressed', b.dataset.color === estado.color);
+    });
+
+    var nota = NOTA[estado.forma];
+    $('ficha').innerHTML =
+      '<dt>Piece</dt><dd>' + nota.et + '</dd>' +
+      '<dt>Eyes</dt><dd>' + (B.SHAPE_BY_ID.get(estado.forma).yeuxPoses ? 'placed on top' : 'punched through') + '</dd>' +
+      '<dt>Exception</dt><dd>' + nota.chip + '</dd>' +
+      (INVERTIDO ? '<dt>Contrast</dt><dd>inverted \u2014 too close to the ground</dd>' : '');
+
+    $('config').innerHTML =
+      '{\n  <span class="k">shape</span>: ' + JSON.stringify(estado.forma) +
+      ',\n  <span class="k">expression</span>: ' + JSON.stringify(estado.cara) +
+      ',\n  <span class="k">colour</span>: ' + JSON.stringify(estado.color) + '\n}';
+
+    $('pie').textContent = nota.por;
+  }
+
+  // --- formas: solo las cuatro de LAB_SHAPES ---
+  $('formas').innerHTML = B.LAB_SHAPES.map(function (f, i) {
+    return '<button class="op" type="button" data-forma="' + f.id + '">'
+      + pintar(f.id, 'neutre', 'currentColor', 34, 'f' + i)
+      + '<span class="nom">' + NOTA[f.id].et + '</span></button>';
+  }).join('');
+  $('n-formas').textContent = B.LAB_SHAPES.length + ' of ' + B.SHAPES.length + ' in the catalogue';
+
+  // --- expresiones ---
+  /*
+   * Las miniaturas se dibujan sobre la forma ELEGIDA, no sobre una fija: una expresion se
+   * lee distinto en cada silueta — el prorata del radio la aprieta o la suelta — y elegir
+   * sobre una vista previa que no es la tuya lleva a sorpresas.
+   */
+  function pintarCaras() {
+    $('caras').innerHTML = B.EXPRESSIONS.map(function (e) {
+      return '<button class="op" type="button" data-cara="' + e.id + '">'
+        + pintar(estado.forma, e.id, 'currentColor', 28, 'e' + (n++))
+        + '<span class="nom">' + (CARA[e.id] || e.id) + '</span></button>';
+    }).join('');
+  }
+  $('n-caras').textContent = B.EXPRESSIONS.length + ' options';
+
+  // --- colores ---
+  $('colores').innerHTML = B.COLORS.map(function (c) {
+    return '<button class="col" type="button" data-color="' + c.id + '" aria-label="' + c.id
+      + '"><i style="background:' + c.hex + '"></i></button>';
+  }).join('');
+  $('n-colores').textContent = B.COLORS.length + ' in the palette';
+
+  document.addEventListener('click', function (ev) {
+    var b = ev.target.closest('button');
+    if (!b) return;
+    if (b.dataset.forma) { estado.forma = b.dataset.forma; pintarCaras(); }
+    else if (b.hasAttribute('data-cara')) estado.cara = b.dataset.cara || null;
+    else if (b.dataset.color) estado.color = b.dataset.color;
+    else return;
+    refrescar();
+  });
+
+  pintarCaras();
+  refrescar();
+})();
+</script>

@@ -12,6 +12,13 @@ import {
   type Point,
   type Silhouette
 } from './shape'
+import { PROFILE_SAMPLES } from './profiles'
+
+const ANGLES_MOTEUR = Array.from({ length: PROFILE_SAMPLES }, (_, i) => (i / PROFILE_SAMPLES) * Math.PI * 2)
+
+/** Rayons -> points locaux, pour melanger un profil radial avec un contour direct. */
+const materialise = (radii: number[] | null): Point[] | null =>
+  radii ? radii.map((r, i) => ({ x: r * Math.cos(ANGLES_MOTEUR[i]!), y: r * Math.sin(ANGLES_MOTEUR[i]!) })) : null
 import { STATE_BY_ID, type Pose, type StateDef, type StateId } from './states'
 
 export interface RenderedEye {
@@ -143,6 +150,17 @@ export class BotEngine {
   private shape: number[] | null = null
   private shapePrev: number[] | null = null
   private shapeAt = -10
+  /** La forme courante interdit-elle le visage ? Cf. `BotShape.sansVisage`. */
+  private muet = false
+  private muetPrev = false
+  /** Resserrement des yeux demande par la forme. Cf. `BotShape.ecartVisage`. */
+  private ecart = 1
+  private ecartPrev = 1
+  /** La forme dessine-t-elle ses yeux PAR-DESSUS ? Cf. `BotShape.yeuxPoses`. */
+  private poses = false
+  /** Contour direct de la forme choisie, quand elle en a un. Cf. `Silhouette.pts`. */
+  private shapePts: Point[] | null = null
+  private shapePtsPrev: Point[] | null = null
   private expr: BotExpression | null = null
   private exprPrev: BotExpression | null = null
   private exprAt = -10
@@ -204,11 +222,77 @@ export class BotEngine {
    * Le changement se fait en morph, pas d'un coup : comme toutes les formes sont
    * echantillonnees aux memes angles, il suffit d'interpoler les rayons.
    */
-  setShape(radii: number[] | null, now = 0) {
-    if (radii === this.shape) return
+  setShape(
+    radii: number[] | null,
+    now = 0,
+    sansVisage = false,
+    pts: Point[] | null = null,
+    ecartVisage = 1,
+    yeuxPoses = false
+  ) {
+    if (
+      radii === this.shape &&
+      sansVisage === this.muet &&
+      pts === this.shapePts &&
+      ecartVisage === this.ecart &&
+      yeuxPoses === this.poses
+    ) {
+      return
+    }
+    this.ecartPrev = this.ecart
+    this.ecart = ecartVisage
+    // pas de fondu : c'est un mode de rendu, il change en meme temps que la forme
+    this.poses = yeuxPoses
     this.shapePrev = this.shape
     this.shape = radii
+    this.shapePtsPrev = this.shapePts
+    this.shapePts = pts
+    this.muetPrev = this.muet
+    this.muet = sansVisage
     this.shapeAt = now
+  }
+
+  /**
+   * Contour direct effectif a l'instant `now`.
+   *
+   * Des qu'un des deux bouts du morph en a un, on melange en points — l'autre bout est
+   * materialise depuis ses rayons. Meme courbe et meme duree que `shapeAtTime` : c'est le
+   * meme mouvement, il ne peut pas avoir deux horloges.
+   */
+  private shapePtsAtTime(now: number): Point[] | null {
+    const to = this.shapePts
+    const from = this.shapePtsPrev
+    if (!to && !from) return null
+    const k = (now - this.shapeAt) / BotEngine.SHAPE_MORPH
+    if (k >= 1) return to
+    const t = easings.easeOutQuint(clamp(k))
+    const pa = from ?? materialise(this.shapePrev)
+    const pb = to ?? materialise(this.shape)
+    if (!pa || !pb) return to
+    return pa.map((p, i) => ({ x: lerp(p.x, pb[i]?.x ?? p.x, t), y: lerp(p.y, pb[i]?.y ?? p.y, t) }))
+  }
+
+  /**
+   * Combien de visage la forme courante autorise a l'instant `now` : 1 = tout, 0 = rien.
+   *
+   * Suit EXACTEMENT la courbe et la duree du morph de silhouette, parce que c'est la meme
+   * cause : les yeux s'eteignent au rythme ou le col se referme sur eux. Les allumer ou les
+   * couper d'un coup se lit comme un bug d'affichage.
+   */
+  /** Resserrement effectif a l'instant `now`, sur la courbe du morph de silhouette. */
+  private ecartAtTime(now: number): number {
+    if (this.ecart === this.ecartPrev) return this.ecart
+    const k = (now - this.shapeAt) / BotEngine.SHAPE_MORPH
+    if (k >= 1) return this.ecart
+    return lerp(this.ecartPrev, this.ecart, easings.easeOutQuint(clamp(k)))
+  }
+
+  private facteurVisage(now: number): number {
+    if (this.muet === this.muetPrev) return this.muet ? 0 : 1
+    const k = (now - this.shapeAt) / BotEngine.SHAPE_MORPH
+    if (k >= 1) return this.muet ? 0 : 1
+    const t = easings.easeOutQuint(clamp(k))
+    return this.muet ? 1 - t : t
   }
 
   /**
@@ -270,16 +354,21 @@ export class BotEngine {
     def: StateDef,
     t: number,
     shape: number[] | null,
-    expr: BotExpression | null
+    expr: BotExpression | null,
+    pts: Point[] | null = null,
+    ecart = 1
   ): Pose {
     let pose = def.pose(t)
     if (def.baseBody && shape) {
-      // on garde la pose (rotation, decalage, squash) et on n'echange que le profil
-      pose = { ...pose, sil: { ...pose.sil, radii: shape } }
+      // on garde la pose (rotation, decalage, squash) et on n'echange que le contour
+      pose = { ...pose, sil: { ...pose.sil, radii: shape, pts: pts ?? undefined } }
     }
     if (def.baseFace && expr) {
       pose = { ...pose, gaze: expr.gaze, split: expr.split, eyes: expr.eyes }
     }
+    // Apres l'expression, jamais avant : chaque expression pose son propre ecart, et la
+    // forme ne fait que le resserrer. Cf. `BotShape.ecartVisage`.
+    if (ecart !== 1) pose = { ...pose, split: pose.split * ecart }
     return pose
   }
 
@@ -365,12 +454,13 @@ export class BotEngine {
   private origine(
     now: number,
     shape: number[] | null,
-    expr: BotExpression | null
+    expr: BotExpression | null,
+    pts: Point[] | null = null
   ): Pose | null {
     if (this.departFige) return this.departFige
     if (!this.prev) return null
     const prevDef = STATE_BY_ID.get(this.prev)!
-    return this.posed(prevDef, Math.max(0, now - this.tPrev), shape, expr)
+    return this.posed(prevDef, Math.max(0, now - this.tPrev), shape, expr, pts, this.ecartAtTime(now))
   }
 
   /**
@@ -382,10 +472,11 @@ export class BotEngine {
     const def = STATE_BY_ID.get(this.cur)!
     const shape = this.shapeAtTime(now)
     const expr = this.exprAtTime(now)
-    const pose = this.posed(def, Math.max(0, now - this.tCur), shape, expr)
+    const pts = this.shapePtsAtTime(now)
+    const pose = this.posed(def, Math.max(0, now - this.tCur), shape, expr, pts, this.ecartAtTime(now))
     const since = now - this.tCur
     if (since >= def.morph) return pose
-    const origine = this.origine(now, shape, expr)
+    const origine = this.origine(now, shape, expr, pts)
     if (!origine) return pose
     return blendPose(origine, pose, easings.easeOutQuint(clamp(since / def.morph)))
   }
@@ -426,7 +517,8 @@ export class BotEngine {
     const def = STATE_BY_ID.get(this.cur)!
     const shape = this.shapeAtTime(now)
     const expr = this.exprAtTime(now)
-    let pose = this.posed(def, Math.max(0, now - this.tCur), shape, expr)
+    const ptsForme = this.shapePtsAtTime(now)
+    let pose = this.posed(def, Math.max(0, now - this.tCur), shape, expr, ptsForme, this.ecartAtTime(now))
     let decalage = this.decalageAtTime(now, this.cur)
 
     // --- transition -------------------------------------------------------
@@ -435,7 +527,7 @@ export class BotEngine {
     // l'ignorer une fois le fondu passe, et l'oublier rendrait le moteur non
     // rejouable — relire une date d'avant la fin du fondu ne le retrouverait
     // plus. C'est l'optimisation qui parait innocente et qui casse tout.
-    const origine = since < def.morph ? this.origine(now, shape, expr) : null
+    const origine = since < def.morph ? this.origine(now, shape, expr, ptsForme) : null
     if (origine) {
       // Ease-out exponentiel : c'est la courbe mesuree sur la video. Le corps
       // n'a pas d'overshoot (seuls la pastille et l'ouverture des yeux en ont).
@@ -456,6 +548,12 @@ export class BotEngine {
         }
       }
     }
+
+    // Une silhouette qui ne peut pas porter de visage l'eteint ici, et pas dans `posed` :
+    // il faut que le fondu entre deux etats soit deja fait, sinon l'etat quitte rallumerait
+    // les yeux pendant sa moitie du melange.
+    const visage = this.facteurVisage(now)
+    if (visage < 1) pose = { ...pose, eyeAlpha: pose.eyeAlpha * visage }
 
     // --- vie au repos -----------------------------------------------------
     const alive = pose.eyeAlpha > 0.01
@@ -495,8 +593,18 @@ export class BotEngine {
     // Les yeux vivent sur une sphere de rayon 1 ; des que la silhouette n'est
     // plus un cercle, on les ramene au prorata du rayon reel dans leur
     // direction, sinon ils debordent et le masque les coupe.
+    /*
+     * Le prorata qui ramene les yeux dans la silhouette.
+     *
+     * Il vaut 1 — donc rien — quand les yeux sont POSES par-dessus. Le prorata n'existe que
+     * pour eviter qu'un trou se fasse rogner au bord ; un oeil dessine dessus a le droit de
+     * deborder, c'est meme tout ce que ce mode achete. Le lui appliquer quand meme etait
+     * activement nuisible : sur une eprouvette il rapprochait les deux yeux de 63 a 7 et 21
+     * unites, ou ils se CHEVAUCHENT et fusionnent en une tache — le defaut qu'on voulait
+     * corriger, ramene par la porte de derriere.
+     */
     const bodyRadius = (x: number, y: number) =>
-      radiusAtAngle(pose.sil.radii, Math.atan2(y, x) - pose.sil.rot)
+      this.poses ? 1 : radiusAtAngle(pose.sil.radii, Math.atan2(y, x) - pose.sil.rot)
 
     const eyes: RenderedEye[] = []
     if (pose.eyeAlpha > 0.01) {

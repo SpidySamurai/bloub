@@ -88,13 +88,31 @@ const R = RAYON
 const VB = DEMI_VIEWBOX
 
 const shapeRadii = computed(() => SHAPE_BY_ID.get(props.shape)?.radii ?? null)
+const shapeMuette = computed(() => SHAPE_BY_ID.get(props.shape)?.sansVisage ?? false)
+const shapePts = computed(() => SHAPE_BY_ID.get(props.shape)?.pts ?? null)
+const shapeEcart = computed(() => SHAPE_BY_ID.get(props.shape)?.ecartVisage ?? 1)
+
+/**
+ * Les yeux sont-ils perces dans le corps, ou poses dessus ?
+ *
+ * Perces par defaut : c'est ce qui les fait rogner tout seuls au bord et ce qui donne le
+ * volume. Une forme trop etroite pour la paire demande `yeuxPoses` — cf. `BotShape`.
+ */
+const yeuxPerces = computed(() => !SHAPE_BY_ID.get(props.shape)?.yeuxPoses)
+const shapePoses = computed(() => !yeuxPerces.value)
+
+/** Epaisseur du cerne des yeux poses, en unites de viewBox. */
+const CERNE = 7
 const ink = computed(() => COLOR_BY_ID.get(props.color)?.hex ?? '#0a0a0c')
 const expression = computed(() => EXPRESSION_BY_ID.get(props.expression) ?? null)
 
 const engine = new BotEngine(R, state.value, shapeRadii.value, expression.value)
+// le flag n'est pas un parametre du constructeur : on le pose tout de suite, a la meme date
+engine.setShape(shapeRadii.value, 0, shapeMuette.value, shapePts.value, shapeEcart.value, shapePoses.value)
 const frame = shallowRef<BotFrame>(engine.sample(props.frozenAt ?? 0))
 const uid = Math.random().toString(36).slice(2, 8)
 const maskId = `bot-mask-${uid}`
+const dehorsId = `bot-dehors-${uid}`
 
 let raf = 0
 let nextAt = Infinity
@@ -408,7 +426,7 @@ watch(
 watch(shapeRadii, (radii) => {
   // on passe l'horloge : le moteur morphe vers la nouvelle forme au lieu de
   // l'appliquer d'un coup
-  engine.setShape(radii, clock)
+  engine.setShape(radii, clock, shapeMuette.value, shapePts.value, shapeEcart.value, shapePoses.value)
   redrawFrozen()
 })
 
@@ -507,7 +525,7 @@ function dotAttrs(dot: BotFrame['dots'][number]) {
       >
         <path :d="frame.bodyPath" fill="#fff" />
         <path
-          v-for="(eye, i) in frame.eyes"
+          v-for="(eye, i) in yeuxPerces ? frame.eyes : []"
           :key="i"
           :d="eye.d"
           :transform="eye.matrix"
@@ -521,6 +539,22 @@ function dotAttrs(dot: BotFrame['dots'][number]) {
           :r="frame.notch.r"
           fill="#000"
         />
+      </mask>
+
+      <!--
+        Le DEHORS du corps. Sert a ne cerner les yeux poses que la ou ils depassent.
+      -->
+      <mask
+        v-if="!yeuxPerces"
+        :id="dehorsId"
+        maskUnits="userSpaceOnUse"
+        :x="-VB"
+        :y="-VB"
+        :width="VB * 2"
+        :height="VB * 2"
+      >
+        <rect :x="-VB" :y="-VB" :width="VB * 2" :height="VB * 2" fill="#fff" />
+        <path :d="frame.bodyPath" fill="#000" />
       </mask>
 
       <linearGradient
@@ -582,6 +616,47 @@ function dotAttrs(dot: BotFrame['dots'][number]) {
       <path :d="frame.bodyPath" :fill="props.paper" />
       <g :mask="`url(#${maskId})`">
         <rect :x="-VB" :y="-VB" :width="VB * 2" :height="VB * 2" :fill="ink" />
+      </g>
+
+      <!--
+        Yeux POSES, pour les silhouettes trop etroites pour les percer.
+
+        Un trou ne peut que se faire rogner : sur un corps plus etroit que la paire, les deux
+        gelules se rejoignent en une tache et le visage disparait. Pose dessus, l'oeil garde
+        sa forme entiere et deborde simplement du bord.
+
+        En DEUX passes, et c'est la seconde qui compte. Le remplissage couvre l'oeil entier ;
+        le cerne, lui, est masque par le DEHORS du corps, donc il n'existe que sur la portion
+        qui depasse.
+
+        Le cerner partout donnerait le meme rendu tant que les deux yeux sont disjoints —
+        encre sur encre ne se voit pas. Mais des qu'ils se CHEVAUCHENT, ce qui arrive
+        justement sur les corps etroits ou le prorata les rapproche, le trait de l'un
+        traverse le remplissage de l'autre et coud une couture en plein visage. Le masque
+        supprime le cas au lieu de compter dessus.
+      -->
+      <g v-if="!yeuxPerces">
+        <path
+          v-for="(eye, i) in frame.eyes"
+          :key="`pf${i}`"
+          :d="eye.d"
+          :transform="eye.matrix"
+          :opacity="eye.alpha"
+          :fill="props.paper"
+        />
+        <g :mask="`url(#${dehorsId})`">
+          <path
+            v-for="(eye, i) in frame.eyes"
+            :key="`pc${i}`"
+            :d="eye.d"
+            :transform="eye.matrix"
+            :opacity="eye.alpha"
+            fill="none"
+            :stroke="ink"
+            :stroke-width="CERNE"
+            stroke-linejoin="round"
+          />
+        </g>
       </g>
     </g>
 

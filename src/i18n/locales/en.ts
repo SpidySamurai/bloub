@@ -20,7 +20,8 @@ const en: typeof fr = {
     nav: 'Sections',
     customize: 'Customise',
     animations: 'Animations',
-    settings: 'Settings'
+    settings: 'Settings',
+    lab: 'Glassware'
   },
 
   panel: {
@@ -132,6 +133,25 @@ const en: typeof fr = {
     swirl: 'Swirl'
   },
 
+  lab: {
+    shape: 'Glassware',
+    expression: 'Expression',
+    color: 'Colour',
+    real: 'Actual size',
+    size: 'Display size',
+    px: '{n} px',
+    eyes: 'Eyes',
+    exception: 'Exception',
+    eyes_plain: 'punched through',
+    eyes_anchored: 'punched through, face anchored',
+    eyes_posed: 'placed on top',
+    why_plain: 'The body is wide enough: the nominal face fits with nothing to correct.',
+    why_anchored:
+      'Wide at the base, narrow at the neck. The anchor moves the solver\u2019s target into the body \u2014 the offset itself is still solved.',
+    why_posed:
+      'Too narrow to punch the eyes through: they are drawn on top, outlined only where they overhang.'
+  },
+
   shapes: {
     cercle: 'Circle',
     galet: 'Pebble',
@@ -140,7 +160,11 @@ const en: typeof fr = {
     triangle: 'Triangle',
     hexagone: 'Hexagon',
     nuage: 'Cloud',
-    goutte: 'Droplet'
+    goutte: 'Droplet',
+    etoile: 'Star',
+    fiole: 'Flask',
+    eprouvette: 'Test tube',
+    ballon: 'Round flask'
   },
 
   colors: {
@@ -155,7 +179,13 @@ const en: typeof fr = {
     bleu: 'Blue',
     violet: 'Purple',
     rose: 'Pink',
-    gris: 'Grey'
+    gris: 'Grey',
+    citron: 'Lime',
+    sapin: 'Forest',
+    cyan: 'Cyan',
+    indigo: 'Indigo',
+    prune: 'Plum',
+    ardoise: 'Slate'
   },
 
   expressions: {

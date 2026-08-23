@@ -16,6 +16,19 @@ export interface Point {
  */
 export interface Silhouette {
   radii: number[]
+  /**
+   * Contour echantillonne en POINTS, qui prend le pas sur `radii` quand il est la.
+   *
+   * `radii` echantillonne en ANGLE : c'est exact et compact tant que le rayon varie
+   * lentement d'une muestra a l'autre. Sur une fiole il ne l'est plus — les coins de la
+   * base sont a 0,95 du centre de lancer et le milieu a 0,48, donc r saute d'un
+   * echantillon au suivant et la cubique de `closedPath` gonfle l'ecart en jupe.
+   *
+   * Un contour rechantillonne a LONGUEUR D'ARC constante repartit les memes 64 points
+   * la ou le trait tourne, pas la ou l'angle avance. Le morphing ne change pas : deux
+   * listes de 64 points se correspondent une a une exactement comme deux profils.
+   */
+  pts?: Point[]
   /** rotation du profil, en radians */
   rot: number
   /** decalage du centre, en unites de rayon de boule */
@@ -55,11 +68,41 @@ export function circle(radius: number, pose: Partial<Silhouette> = {}): Silhouet
   }
 }
 
+/** Contour local d'une silhouette, quelle que soit sa representation. */
+function localPoints(s: Silhouette): Point[] {
+  if (s.pts) return s.pts
+  return s.radii.map((r, i) => ({ x: r * (COS[i] ?? 0), y: r * (SIN[i] ?? 0) }))
+}
+
 /** Interpolation de deux silhouettes. `out` est reutilise pour eviter d'allouer a 60 fps. */
 export function blend(a: Silhouette, b: Silhouette, t: number, out?: Silhouette): Silhouette {
   const dst = out ?? { radii: new Array<number>(PROFILE_SAMPLES), rot: 0, cx: 0, cy: 0, sx: 1, sy: 1 }
-  for (let i = 0; i < PROFILE_SAMPLES; i++) {
-    dst.radii[i] = lerp(a.radii[i] ?? 1, b.radii[i] ?? 1, t)
+  if (a.pts || b.pts) {
+    // Des qu'un des deux est un contour direct, on melange en POINTS : c'est la seule
+    // representation que les deux savent prendre, et l'aller-retour est exact pour un
+    // profil radial (r,theta -> x,y ne perd rien).
+    const pa = localPoints(a)
+    const pb = localPoints(b)
+    const pts = dst.pts ?? new Array<Point>(PROFILE_SAMPLES)
+    for (let i = 0; i < PROFILE_SAMPLES; i++) {
+      const x = lerp(pa[i]?.x ?? 0, pb[i]?.x ?? 0, t)
+      const y = lerp(pa[i]?.y ?? 0, pb[i]?.y ?? 0, t)
+      const p = pts[i] ?? { x: 0, y: 0 }
+      p.x = x
+      p.y = y
+      pts[i] = p
+    }
+    dst.pts = pts
+    // `radii` reste renseigne : `radiusAtAngle` s'en sert pour poser ce qui vit SUR le
+    // corps, et il n'a pas a savoir comment le contour est stocke.
+    for (let i = 0; i < PROFILE_SAMPLES; i++) {
+      dst.radii[i] = Math.hypot(pts[i]!.x, pts[i]!.y)
+    }
+  } else {
+    dst.pts = undefined
+    for (let i = 0; i < PROFILE_SAMPLES; i++) {
+      dst.radii[i] = lerp(a.radii[i] ?? 1, b.radii[i] ?? 1, t)
+    }
   }
   // Rotation par le chemin le plus court : evite de faire un tour complet
   // quand on passe par exemple de +170deg a -170deg.
@@ -78,10 +121,18 @@ export function blend(a: Silhouette, b: Silhouette, t: number, out?: Silhouette)
 export function toPoints(s: Silhouette, scale: number, out: Point[] = []): Point[] {
   const cr = Math.cos(s.rot)
   const sr = Math.sin(s.rot)
+  const src = s.pts
   for (let i = 0; i < PROFILE_SAMPLES; i++) {
-    const r = s.radii[i] ?? 1
-    const x = r * (COS[i] ?? 0)
-    const y = r * (SIN[i] ?? 0)
+    let x: number
+    let y: number
+    if (src) {
+      x = src[i]?.x ?? 0
+      y = src[i]?.y ?? 0
+    } else {
+      const r = s.radii[i] ?? 1
+      x = r * (COS[i] ?? 0)
+      y = r * (SIN[i] ?? 0)
+    }
     // rotation puis squash en repere ecran, puis translation
     const rx = x * cr - y * sr
     const ry = x * sr + y * cr
@@ -238,7 +289,7 @@ export function unionOfCirclesProfile(circles: Array<{ x: number; y: number; r: 
  * rayon `rc`. Les sommets sont donc a poser au rayon voulu MOINS rc.
  * Attend un polygone en sens horaire (repere ecran, y vers le bas).
  */
-function roundedPolygon(verts: Point[], rc: number, arcSteps = 10): Point[] {
+export function roundedPolygon(verts: Point[], rc: number, arcSteps = 10): Point[] {
   const n = verts.length
   const out: Point[] = []
   const normal = (a: Point, b: Point) => {
@@ -280,6 +331,101 @@ export function regularPolygonProfile(
   })
   return profileFromPolygon(roundedPolygon(verts, rc), 0, 0)
 }
+
+/**
+ * Etoile a `points` branches, coins arrondis.
+ *
+ * Meme construction que `regularPolygonProfile`, a ceci pres que les sommets
+ * alternent entre `rOuter` (les pointes) et `rInner` (les creux). Une etoile
+ * reste etoilee au sens strict — tout rayon parti du centre coupe le contour
+ * exactement une fois — donc r(theta) la decrit exactement, comme les formes
+ * convexes du reste du fichier.
+ *
+ * `rc` arrondit pointes ET creux : sans lui les pointes tombent entre deux des
+ * 64 angles echantillonnes et s'emoussent au hasard de leur orientation.
+ */
+export function starProfile(
+  points: number,
+  rOuter: number,
+  rInner: number,
+  rc: number,
+  rotationDeg = 0
+): number[] {
+  const rot = (rotationDeg * Math.PI) / 180
+  const n = points * 2
+  const verts = Array.from({ length: n }, (_, i) => {
+    // sens horaire a l'ecran, comme regularPolygonProfile
+    const a = rot + (i / n) * TAU
+    const r = (i % 2 === 0 ? rOuter : rInner) - rc
+    return { x: Math.cos(a) * r, y: Math.sin(a) * r }
+  })
+  return profileFromPolygon(roundedPolygon(verts, rc), 0, 0)
+}
+
+/**
+ * Rechantillonne un polygone ferme en `PROFILE_SAMPLES` points a LONGUEUR D'ARC constante.
+ *
+ * C'est l'alternative a `profileFromPolygon` pour les contours ou r(theta) se comporte mal :
+ * les points vont la ou le trait est long, pas la ou l'angle avance.
+ *
+ * Deux calages sans lesquels le morphing partirait en vrille :
+ *
+ * - **le sens**, ramene a l'horaire ecran (aire signee), qui est celui des angles de
+ *   `profileFromPolygon` avec y vers le bas. Deux contours de sens opposes se melangent en
+ *   se retournant l'un dans l'autre ;
+ * - **l'origine**, ramenee au point le plus proche de la direction +x. L'indice 0 d'un
+ *   profil radial est a theta = 0 : sans ce calage, melanger un contour direct et un
+ *   profil ferait tourner la forme d'un quart de tour pendant la transition.
+ */
+export function resampleOutline(poly: Point[], samples = PROFILE_SAMPLES): Point[] {
+  // sens horaire ecran = aire signee positive avec y vers le bas
+  let aire = 0
+  for (let i = 0; i < poly.length; i++) {
+    const a = poly[i]!
+    const b = poly[(i + 1) % poly.length]!
+    aire += a.x * b.y - b.x * a.y
+  }
+  const src = aire < 0 ? [...poly].reverse() : poly
+
+  const n = src.length
+  const long: number[] = []
+  let total = 0
+  for (let i = 0; i < n; i++) {
+    const a = src[i]!
+    const b = src[(i + 1) % n]!
+    total += Math.hypot(b.x - a.x, b.y - a.y)
+    long.push(total)
+  }
+
+  const out: Point[] = []
+  let seg = 0
+  for (let k = 0; k < samples; k++) {
+    const cible = (k / samples) * total
+    while (seg < n - 1 && long[seg]! < cible) seg++
+    const avant = seg === 0 ? 0 : long[seg - 1]!
+    const a = src[seg]!
+    const b = src[(seg + 1) % n]!
+    const d = long[seg]! - avant
+    const u = d > 0 ? (cible - avant) / d : 0
+    out.push({ x: lerp(a.x, b.x, u), y: lerp(a.y, b.y, u) })
+  }
+
+  // origine ramenee au point le plus proche de la direction +x
+  let best = 0
+  let bestA = Infinity
+  for (let i = 0; i < out.length; i++) {
+    const p = out[i]!
+    const ang = Math.abs(Math.atan2(p.y, p.x))
+    if (ang < bestA) {
+      bestA = ang
+      best = i
+    }
+  }
+  return [...out.slice(best), ...out.slice(0, best)]
+}
+
+/** Rayon maximal d'un contour direct : l'equivalent de `Math.max(...radii)`. */
+export const rayonMax = (pts: Point[]) => Math.max(...pts.map((p) => Math.hypot(p.x, p.y)))
 
 /** Polyligne fermee exacte : garde les segments droits (contrairement a closedPath). */
 export function polyPath(pts: Point[], scale = 1): string {

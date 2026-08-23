@@ -1,0 +1,267 @@
+<title>Banco de ajuste</title>
+<style>
+  :root {
+    --papel: #f7f6f3; --tinta: #16171b; --linea: #e3e1dc; --suave: #6b6e75;
+    --acento: #0e7c86; --mal: #c2410c; --panel: #ffffff;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --papel: #121316; --tinta: #ececed; --linea: #2b2d32; --suave: #9a9da4;
+      --acento: #4bc5cf; --mal: #f08a5a; --panel: #1a1c20;
+    }
+  }
+  :root[data-theme="dark"] {
+    --papel: #121316; --tinta: #ececed; --linea: #2b2d32; --suave: #9a9da4;
+    --acento: #4bc5cf; --mal: #f08a5a; --panel: #1a1c20;
+  }
+  body {
+    margin: 0; background: var(--papel); color: var(--tinta);
+    font: 14px/1.5 ui-sans-serif, system-ui, sans-serif;
+  }
+  .envoltura { max-width: 1180px; margin: 0 auto; padding: 28px 20px 64px; }
+  h1 { font-size: 20px; margin: 0 0 4px; letter-spacing: -.01em; }
+  .sub { color: var(--suave); font-size: 13px; margin: 0 0 24px; max-width: 62ch; text-wrap: pretty; }
+  .cols { display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: 24px; align-items: start; }
+  @media (max-width: 820px) { .cols { grid-template-columns: minmax(0, 1fr); } }
+  .panel {
+    background: var(--panel); border: 1px solid var(--linea);
+    border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 16px;
+  }
+  .campo { display: flex; flex-direction: column; gap: 6px; }
+  .campo label { font-size: 12px; color: var(--suave); display: flex; justify-content: space-between; gap: 8px; }
+  .campo label b { color: var(--tinta); font-variant-numeric: tabular-nums; font-weight: 600; }
+  input[type=range] { width: 100%; accent-color: var(--acento); }
+  select {
+    width: 100%; padding: 7px 8px; border-radius: 7px; font: inherit; font-size: 13px;
+    background: var(--papel); color: var(--tinta); border: 1px solid var(--linea);
+  }
+  .veredicto { border-radius: 9px; padding: 10px 12px; font-size: 13px; border: 1px solid var(--linea); }
+  .ok { color: var(--acento); }
+  .no { color: var(--mal); }
+  .rejilla { display: grid; grid-template-columns: repeat(auto-fill, minmax(126px, 1fr)); gap: 10px; }
+  .celda {
+    background: var(--panel); border: 1px solid var(--linea); border-radius: 10px;
+    padding: 10px 6px 8px; display: flex; flex-direction: column; align-items: center; gap: 6px;
+  }
+  .celda.falla { border-color: var(--mal); }
+  .celda span { font-size: 11px; color: var(--suave); }
+  .celda b { font-size: 11px; font-variant-numeric: tabular-nums; }
+  pre {
+    background: var(--panel); border: 1px solid var(--linea); border-radius: 10px;
+    padding: 12px 14px; overflow-x: auto; font-size: 12.5px; margin: 0;
+  }
+  .nota { color: var(--suave); font-size: 12px; margin-top: 10px; }
+</style>
+
+<div class="envoltura">
+  <h1>Banco de ajuste — bloub</h1>
+  <p class="sub">
+    El motor real, compilado. Movés los números y ves de inmediato si la cara entra en la
+    silueta. El desborde se mide en unidades de viewBox sobre un radio de 100.
+    <br><br>
+    <b>Es un indicador, no el test.</b> Acá se mide una pose por estado;
+    <code>skins.test.ts</code> barre sesenta instantes y las cuatro esquinas de la deriva
+    del regard, así que su número siempre es mayor que este. Sirve para encontrar el valor
+    rápido — confirmalo con <code>pnpm test</code> antes de darlo por bueno.
+  </p>
+
+  <div class="cols">
+    <div class="panel">
+      <div class="campo">
+        <label for="forma">Forma</label>
+        <select id="forma"></select>
+      </div>
+
+      <div class="campo">
+        <label for="ecart">Separación de ojos <b id="v-ecart">1.00</b></label>
+        <input type="range" id="ecart" min="0.2" max="1.4" step="0.01" value="1">
+      </div>
+
+      <div class="campo">
+        <label for="ancla">Bajar la cara (exploración) <b id="v-ancla">0.00</b></label>
+        <input type="range" id="ancla" min="-0.6" max="1" step="0.01" value="0">
+      </div>
+
+      <div class="campo">
+        <label for="tam">Escala de ojos <b id="v-tam">1.00</b></label>
+        <input type="range" id="tam" min="0.4" max="1.3" step="0.01" value="1">
+      </div>
+
+      <div class="veredicto" id="veredicto">—</div>
+
+      <div>
+        <div style="font-size:12px;color:var(--suave);margin-bottom:6px">Para pegar en <code>skins.ts</code></div>
+        <pre id="salida">—</pre>
+      </div>
+
+      <p class="nota">
+        <b>Bajar la cara</b> acá es una traslación cruda, para encontrar <i>dónde</i> cabe.
+        En producción no se escribe ese número: se pone
+        <code>ancreVisage</code> apuntando ahí y el solver de <code>eyefit</code> calcula su
+        propio desplazamiento, por estado y por expresión. El deslizador te dice a qué altura
+        apuntar; el valor final lo pone él.
+        <br><br>
+        <b>La escala de ojos</b> es solo diagnóstico: hay un test que fija que el tamaño del
+        ojo no dependa de la forma. Si el único valor que funciona la necesita, eso ya es la
+        respuesta — esa silueta no lleva cara.
+      </p>
+    </div>
+
+    <div>
+      <div class="rejilla" id="rejilla"></div>
+      <p class="nota" id="resumen"></p>
+    </div>
+  </div>
+</div>
+
+<script src="./bloub-inline.js"></script>
+<script>
+(function () {
+  var B = window.Bloub;
+  var R = 100, VB = 158;
+  var $ = function (id) { return document.getElementById(id); };
+
+  // Estados con cuerpo de base: los unicos donde la forma elegida reemplaza el cuerpo.
+  var ESTADOS = B.STATES.filter(function (s) { return s.baseBody; });
+
+  function motor(forma, estado, expr, ecart) {
+    var e = new B.BotEngine(R, estado, forma.radii, expr);
+    e.setShape(forma.radii, 0, false, forma.pts || null, ecart);
+    return e;
+  }
+
+  /*
+   * Contorno del cuerpo como poligono.
+   *
+   * `closedPath` emite "M x y C c1 c2 fin C c1 c2 fin ...": solo el ULTIMO par de cada C
+   * esta sobre la curva. Tomar todos los numeros mete los puntos de control, que caen por
+   * fuera, y el poligono resultante es mas generoso que la forma — con eso todo "entraba".
+   */
+  function contorno(d) {
+    var pts = [];
+    var mIni = /^M(-?[\d.]+)\s+(-?[\d.]+)/.exec(d);
+    if (mIni) pts.push({ x: +mIni[1], y: +mIni[2] });
+    var re = /C(-?[\d.]+)\s+(-?[\d.]+)\s+(-?[\d.]+)\s+(-?[\d.]+)\s+(-?[\d.]+)\s+(-?[\d.]+)/g, m;
+    while ((m = re.exec(d))) pts.push({ x: +m[5], y: +m[6] });
+    return pts;
+  }
+
+  /** Semiejes reales de la capsula del ojo, leidos de su propio path. */
+  function medidasOjo(d) {
+    var xs = [], ys = [], re = /(-?[\d.]+)\s+(-?[\d.]+)/g, m;
+    while ((m = re.exec(d))) { xs.push(Math.abs(+m[1])); ys.push(Math.abs(+m[2])); }
+    return { hw: Math.max.apply(null, xs), hh: Math.max.apply(null, ys) };
+  }
+  function dentro(poly, x, y) {
+    var d = false;
+    for (var i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+      var a = poly[i], b = poly[j];
+      if ((a.y > y) !== (b.y > y) && x < ((b.x - a.x) * (y - a.y)) / (b.y - a.y) + a.x) d = !d;
+    }
+    return d;
+  }
+
+  // Desborde maximo del ojo fuera del cuerpo, muestreando su contorno.
+  function desborde(frame, escalaOjo) {
+    var poly = contorno(frame.bodyPath), peor = 0;
+    frame.eyes.forEach(function (ojo) {
+      if (ojo.alpha < 0.05) return;
+      var m = /matrix\(([^)]+)\)/.exec(ojo.matrix)[1].split(',').map(Number);
+      // tamano REAL de este ojo: `wide` lleva capsulas de 87 unidades, `idle` de 41
+      var med = medidasOjo(ojo.d);
+      for (var k = 0; k < 40; k++) {
+        var a = (k / 40) * Math.PI * 2;
+        var lx = Math.cos(a) * med.hw * escalaOjo, ly = Math.sin(a) * med.hh * escalaOjo;
+        var x = m[0] * lx + m[2] * ly + m[4], y = m[1] * lx + m[3] * ly + m[5];
+        if (!dentro(poly, x, y)) {
+          var mejor = Infinity;
+          for (var i = 0; i < poly.length; i++) {
+            mejor = Math.min(mejor, Math.hypot(poly[i].x - x, poly[i].y - y));
+          }
+          peor = Math.max(peor, mejor);
+        }
+      }
+    });
+    return peor;
+  }
+
+  function svg(frame, ancla, escalaOjo, uid) {
+    var oj = frame.eyes.map(function (y) {
+      var m = /matrix\(([^)]+)\)/.exec(y.matrix)[1].split(',').map(Number);
+      var mm = [m[0] * escalaOjo, m[1] * escalaOjo, m[2] * escalaOjo, m[3] * escalaOjo,
+                m[4], m[5] + ancla * R];
+      return '<path d="' + y.d + '" transform="matrix(' + mm.join(',') + ')" fill="#000"/>';
+    }).join('');
+    return '<svg width="104" height="104" viewBox="' + [-VB, -VB, VB * 2, VB * 2].join(' ') + '">'
+      + '<defs><mask id="k' + uid + '"><path d="' + frame.bodyPath + '" fill="#fff"/>' + oj + '</mask></defs>'
+      + '<path d="' + frame.bodyPath + '" fill="currentColor" mask="url(#k' + uid + ')"/></svg>';
+  }
+
+  function pintar() {
+    var forma = B.SHAPE_BY_ID.get($('forma').value);
+    var ecart = +$('ecart').value, ancla = +$('ancla').value, tam = +$('tam').value;
+    $('v-ecart').textContent = ecart.toFixed(2);
+    $('v-ancla').textContent = ancla.toFixed(2);
+    $('v-tam').textContent = tam.toFixed(2);
+
+    var html = '', peorGlobal = 0, fallan = 0, n = 0;
+    ESTADOS.forEach(function (def, i) {
+      var expresiones = def.baseFace ? [null].concat(B.EXPRESSIONS) : [null];
+      var peorEstado = 0;
+      expresiones.forEach(function (ex) {
+        var fr = motor(forma, def.id, ex, ecart).sample(B.POSES[def.id] || 1);
+        // el ancla se aplica al dibujo igual que al medir
+        var movido = { bodyPath: fr.bodyPath, eyes: fr.eyes.map(function (y) {
+          var m = /matrix\(([^)]+)\)/.exec(y.matrix)[1].split(',').map(Number);
+          m[5] += ancla * R;
+          return { d: y.d, alpha: y.alpha, matrix: 'matrix(' + m.join(',') + ')' };
+        }) };
+        peorEstado = Math.max(peorEstado, desborde(movido, tam));
+        n++;
+      });
+      peorGlobal = Math.max(peorGlobal, peorEstado);
+      if (peorEstado > 0.05) fallan++;
+      var fr0 = motor(forma, def.id, null, ecart).sample(B.POSES[def.id] || 1);
+      html += '<div class="celda' + (peorEstado > 0.05 ? ' falla' : '') + '">'
+        + svg(fr0, ancla, tam, def.id + i)
+        + '<span>' + def.id + '</span>'
+        + '<b class="' + (peorEstado > 0.05 ? 'no' : 'ok') + '">'
+        + (peorEstado > 0.05 ? peorEstado.toFixed(1) + ' fuera' : 'entra') + '</b></div>';
+    });
+    $('rejilla').innerHTML = html;
+
+    var v = $('veredicto');
+    if (peorGlobal <= 0.05) {
+      v.innerHTML = '<span class="ok"><b>Entra.</b></span> Ningún ojo se sale, en '
+        + n + ' combinaciones.';
+    } else {
+      v.innerHTML = '<span class="no"><b>' + peorGlobal.toFixed(1) + ' unidades fuera.</b></span> '
+        + fallan + ' de ' + ESTADOS.length + ' estados fallan.';
+    }
+
+    var partes = [];
+    if (ecart !== 1) partes.push('ecartVisage: ' + ecart);
+    if (ancla !== 0) partes.push('ancreVisage: { x: 0, y: ' + ancla.toFixed(2) + ' }');
+    if (tam !== 1) partes.push('/* pide escalar los ojos: no hay excepcion para eso */');
+    $('salida').textContent = partes.length
+      ? "{ id: '" + forma.id + "', radii: " + forma.id.toUpperCase() + ', ' + partes.join(', ') + ' }'
+      : "{ id: '" + forma.id + "', radii: " + forma.id.toUpperCase() + ' }   // sin excepción';
+
+    $('resumen').textContent = 'Cada tarjeta es un estado con cuerpo de base, en su pose más '
+      + 'legible. El número mide la peor de sus expresiones. Umbral del test: 0.05.';
+  }
+
+  var sel = $('forma');
+  B.SHAPES.forEach(function (f) {
+    var o = document.createElement('option');
+    o.value = f.id; o.textContent = f.id;
+    sel.appendChild(o);
+  });
+  sel.value = 'eprouvette';
+
+  ['forma', 'ecart', 'ancla', 'tam'].forEach(function (id) {
+    $(id).addEventListener('input', pintar);
+  });
+  pintar();
+})();
+</script>

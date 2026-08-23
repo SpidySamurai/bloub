@@ -2,7 +2,18 @@ import { describe, expect, it } from 'vitest'
 import { BotEngine, type RenderedEye } from './engine'
 import { decalageDesYeux, POUR_TESTS } from './eyefit'
 import { EXPRESSIONS } from './expressions'
-import { DEFAULT_SHAPE, SHAPES, SHAPE_BY_ID } from './skins'
+import { DEFAULT_SHAPE, SHAPES, SHAPE_BY_ID, type BotShape } from './skins'
+
+/**
+ * Les formes dont les yeux sont PERCES dans le corps.
+ *
+ * Deux exclusions, pour deux raisons distinctes. `sansVisage` : le moteur y eteint les
+ * yeux, il n'y a rien a contenir. `yeuxPoses` : l'oeil est dessine entier par-dessus le
+ * corps et cerne, donc en deborder n'est plus un defaut mais le comportement prevu — c'est
+ * precisement ce que ce mode achete. Les assertions ci-dessous ne valent que pour un trou,
+ * qui lui ne sait que se faire rogner.
+ */
+const AVEC_VISAGE = SHAPES.filter((f) => !f.sansVisage && !f.yeuxPoses)
 import { STATES, type StateId } from './states'
 
 /**
@@ -103,8 +114,20 @@ const PAS = 1 / 20
  * `POSES[state]` que `capsule` + `effraye` est passe inapercu, alors qu'il sortait de
  * 4,4 unites une seconde plus tard.
  */
-function debordement(state: StateId, radii: number[], expr: (typeof EXPRESSIONS)[number] | null) {
-  const e = new BotEngine(R, state, radii, expr)
+/**
+ * Moteur pose sur une forme du catalogue, ancrage du visage compris.
+ *
+ * Passer `forme.radii` seul testerait une fiole dont le visage est reste en haut du col,
+ * c'est-a-dire une configuration que l'application ne rend jamais.
+ */
+function moteurSurForme(state: StateId, forme: BotShape, expr: (typeof EXPRESSIONS)[number] | null) {
+  const e = new BotEngine(R, state, forme.radii, expr)
+  e.setShape(forme.radii, 0, forme.sansVisage ?? false, forme.pts ?? null, forme.ecartVisage ?? 1, forme.yeuxPoses ?? false)
+  return e
+}
+
+function debordement(state: StateId, forme: BotShape, expr: (typeof EXPRESSIONS)[number] | null) {
+  const e = moteurSurForme(state, forme, expr)
   let pire = 0
   for (let i = 0; i < INSTANTS; i++) {
     const f = e.sample(i * PAS)
@@ -130,9 +153,9 @@ describe('formes du personnalisateur', () => {
   it("aucune forme ne laisse un oeil sortir de la silhouette", () => {
     const fautifs: string[] = []
     for (const state of CORPS_DE_BASE) {
-      for (const forme of SHAPES) {
+      for (const forme of AVEC_VISAGE) {
         for (const expr of [null, ...EXPRESSIONS]) {
-          const sortie = debordement(state, forme.radii, expr)
+          const sortie = debordement(state, forme, expr)
           if (sortie > 0.05) {
             fautifs.push(`${state}/${forme.id}/${expr?.id ?? 'pose'} ${sortie.toFixed(1)}`)
           }
@@ -176,7 +199,7 @@ describe('formes du personnalisateur', () => {
   it("la forme choisie ne touche pas aux etats a silhouette mesuree", () => {
     for (const state of SILHOUETTE_MESUREE) {
       const nu = new BotEngine(R, state, null, null).sample(1)
-      for (const forme of SHAPES) {
+      for (const forme of AVEC_VISAGE) {
         const habille = new BotEngine(R, state, forme.radii, null).sample(1)
         expect(habille.eyes, `${state}/${forme.id}`).toEqual(nu.eyes)
         expect(habille.bodyPath).toBe(nu.bodyPath)
@@ -194,7 +217,7 @@ describe('formes du personnalisateur', () => {
    */
   it('la taille des yeux ne depend pas de la forme', () => {
     const tailles = new Set(
-      SHAPES.map((f) =>
+      AVEC_VISAGE.map((f) =>
         new BotEngine(R, 'idle', f.radii, null)
           .sample(1)
           .eyes.map((y) => y.d)
@@ -287,7 +310,7 @@ describe('formes du personnalisateur', () => {
      */
     expect(morphsDExpression(cercle).n, 'cercle : morphs d expression').toBe(0)
 
-    for (const forme of SHAPES) {
+    for (const forme of AVEC_VISAGE) {
       // Au repos, la seule chose qui bouge est la derive du regard. Une correction qui la
       // suivrait ferait trembler les yeux en permanence : c'est le defaut le plus visible
       // de tous, et le premier qu'on a eu.
