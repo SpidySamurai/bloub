@@ -5,8 +5,14 @@ transforme entre 14 etats, deux formes blanches pour les yeux, et rien d'autre. 
 bibliotheque d'animation, pas de framework, **aucune dependance d'execution**.
 
 ```bash
-pnpm add bloub-core
+# depuis le depot public, sans compte ni jeton : le lockfile fige le commit
+pnpm add github:SpidySamurai/bloub#<sha-de-core-dist>
 ```
+
+Le paquet n'est pas encore sur npm — la publication y demande une double authentification que
+le compte n'a pas. La branche **`core-dist`** porte donc le paquet a la racine, construit,
+tel qu'il partirait au registre : `tools/publier-core.sh` la met a jour et affiche le sha a
+installer. Passer a npm plus tard ne changera qu'une ligne chez le consommateur.
 
 ```ts
 import { BotEngine, LAB_SHAPES, closedPath, toPoints } from 'bloub-core'
