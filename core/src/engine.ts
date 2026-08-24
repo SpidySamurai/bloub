@@ -1,8 +1,8 @@
-import { arcRender, type ArcRender, type DotRender } from './decor'
-import { blendExpression, type BotExpression } from './expressions'
-import { decalageDesYeux } from './eyefit'
-import { blinkScale, eyePoses, liveliness } from './face'
-import { clamp, easings, lerp, r2 } from './math'
+import { arcRender, type ArcRender, type DotRender } from './decor.js'
+import { blendExpression, type BotExpression } from './expressions.js'
+import { decalageDesYeux } from './eyefit.js'
+import { blinkScale, eyePoses, liveliness } from './face.js'
+import { clamp, easings, lerp, r2 } from './math.js'
 import {
   blend,
   capsulePath,
@@ -11,15 +11,15 @@ import {
   toPoints,
   type Point,
   type Silhouette
-} from './shape'
-import { PROFILE_SAMPLES } from './profiles'
+} from './shape.js'
+import { PROFILE_SAMPLES } from './profiles.js'
 
 const ANGLES_MOTEUR = Array.from({ length: PROFILE_SAMPLES }, (_, i) => (i / PROFILE_SAMPLES) * Math.PI * 2)
 
 /** Rayons -> points locaux, pour melanger un profil radial avec un contour direct. */
 const materialise = (radii: number[] | null): Point[] | null =>
   radii ? radii.map((r, i) => ({ x: r * Math.cos(ANGLES_MOTEUR[i]!), y: r * Math.sin(ANGLES_MOTEUR[i]!) })) : null
-import { STATE_BY_ID, type Pose, type StateDef, type StateId } from './states'
+import { STATE_BY_ID, type Pose, type StateDef, type StateId } from './states.js'
 
 export interface RenderedEye {
   d: string

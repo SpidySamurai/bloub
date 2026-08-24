@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest'
-import { BotEngine } from './engine'
-import { radiusAtAngle } from './shape'
-import { EXPRESSION_BY_ID } from './expressions'
-import { REST_GAZE } from './face'
-import { SHAPE_BY_ID } from './skins'
-import { SEQUENCE, STATES, type StateId } from './states'
+import { BotEngine } from './engine.js'
+import { radiusAtAngle } from './shape.js'
+import { EXPRESSION_BY_ID } from './expressions.js'
+import { REST_GAZE } from './face.js'
+import { SHAPE_BY_ID } from './skins.js'
+import { SEQUENCE, STATES, type StateId } from './states.js'
 
 /** Points d'ancrage d'un path genere par closedPath (on ignore les controles). */
 function anchors(d: string): Array<[number, number]> {

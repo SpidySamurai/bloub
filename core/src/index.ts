@@ -6,22 +6,22 @@
  * la porte d'entree. Ici ne passe que ce qu'il faut pour DESSINER un bot: le moteur, les
  * etats, le catalogue de formes, les expressions, et le repere du viewBox.
  */
-export { BotEngine } from './engine'
-export type { BotFrame, RenderedEye, Look } from './engine'
+export { BotEngine } from './engine.js'
+export type { BotFrame, RenderedEye, Look } from './engine.js'
 
-export { STATES, STATE_BY_ID, SEQUENCE, POSES } from './states'
-export type { StateId, StateDef, Pose, EyeCfg } from './states'
+export { STATES, STATE_BY_ID, SEQUENCE, POSES } from './states.js'
+export type { StateId, StateDef, Pose, EyeCfg } from './states.js'
 
-export { SHAPES, SHAPE_BY_ID } from './skins'
-export type { ShapeId, BotShape } from './skins'
+export { SHAPES, SHAPE_BY_ID } from './skins.js'
+export type { ShapeId, BotShape } from './skins.js'
 
-export { LAB_IDS, LAB_SHAPES, LAB_DEFAUT, estFormeLab, formeLabOuDefaut } from './lab'
-export type { LabShapeId } from './lab'
+export { LAB_IDS, LAB_SHAPES, LAB_DEFAUT, estFormeLab, formeLabOuDefaut } from './lab.js'
+export type { LabShapeId } from './lab.js'
 
-export { EXPRESSIONS, EXPRESSION_BY_ID, DEFAULT_EXPRESSION, blendExpression } from './expressions'
-export type { ExpressionId, BotExpression } from './expressions'
+export { EXPRESSIONS, EXPRESSION_BY_ID, DEFAULT_EXPRESSION, blendExpression } from './expressions.js'
+export type { ExpressionId, BotExpression } from './expressions.js'
 
-export { closedPath, toPoints } from './shape'
-export type { Point, Silhouette } from './shape'
+export { closedPath, toPoints } from './shape.js'
+export type { Point, Silhouette } from './shape.js'
 
-export { RAYON, DEMI_VIEWBOX } from './repere'
+export { RAYON, DEMI_VIEWBOX } from './repere.js'

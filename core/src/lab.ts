@@ -1,4 +1,4 @@
-import { SHAPE_BY_ID, type BotShape, type ShapeId } from './skins'
+import { SHAPE_BY_ID, type BotShape, type ShapeId } from './skins.js'
 
 /**
  * Le sous-ensemble « verrerie », celui qu'un produit expose a ses utilisateurs.
