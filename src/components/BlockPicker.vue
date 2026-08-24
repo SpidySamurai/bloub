@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import BotTile from '@/components/BotTile.vue'
-import { POSES, SEQUENCE, STATE_BY_ID, type StateId } from '@/bot/states'
+import { POSES, SEQUENCE, STATE_BY_ID, type StateId } from 'bloub-core/states'
 import { t } from '@/i18n'
 
 /**

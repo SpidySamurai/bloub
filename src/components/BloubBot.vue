@@ -1,24 +1,24 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref, shallowRef, triggerRef, watch } from 'vue'
-import { NOTIF_BLUE } from '@/bot/decor'
-import { BotEngine, type BotFrame } from '@/bot/engine'
-import { clamp, easings } from '@/bot/math'
+import { NOTIF_BLUE } from 'bloub-core/decor'
+import { BotEngine, type BotFrame } from 'bloub-core/engine'
+import { clamp, easings } from 'bloub-core/math'
 import { t } from '@/i18n'
 import { lookTarget, TURN_TIME, type GazeScript } from '@/ui/gaze'
 import {
   DEFAULT_EXPRESSION,
   EXPRESSION_BY_ID
-} from '@/bot/expressions'
+} from 'bloub-core/expressions'
 import {
   COLOR_BY_ID,
   DEFAULT_COLOR,
   DEFAULT_SHAPE,
   SHAPE_BY_ID,
   mixHex
-} from '@/bot/skins'
-import { blockAt, defaultCycle, offsetOf, type Block } from '@/bot/cycles'
-import { DEMI_VIEWBOX, RAYON } from '@/bot/repere'
-import { STATE_BY_ID, type StateId } from '@/bot/states'
+} from 'bloub-core/skins'
+import { blockAt, defaultCycle, offsetOf, type Block } from 'bloub-core/cycles'
+import { DEMI_VIEWBOX, RAYON } from 'bloub-core/repere'
+import { STATE_BY_ID, type StateId } from 'bloub-core/states'
 
 const props = withDefaults(
   defineProps<{

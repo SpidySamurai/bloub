@@ -53,10 +53,10 @@ import {
   parseCycles,
   totalDuration,
   type Cycle
-} from '@/bot/cycles'
-import { DEFAULT_EXPRESSION, EXPRESSION_BY_ID } from '@/bot/expressions'
-import { COLOR_BY_ID, DEFAULT_COLOR, DEFAULT_SHAPE, SHAPE_BY_ID } from '@/bot/skins'
-import { POSES, SEQUENCE, STATES, type StateId } from '@/bot/states'
+} from 'bloub-core/cycles'
+import { DEFAULT_EXPRESSION, EXPRESSION_BY_ID } from 'bloub-core/expressions'
+import { COLOR_BY_ID, DEFAULT_COLOR, DEFAULT_SHAPE, SHAPE_BY_ID } from 'bloub-core/skins'
+import { POSES, SEQUENCE, STATES, type StateId } from 'bloub-core/states'
 
 /**
  * L'URL pilote la vue : `#etat=orbit&stop` ouvre un etat precis sequence a

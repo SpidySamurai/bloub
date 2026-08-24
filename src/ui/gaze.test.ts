@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest'
-import { BotEngine } from '@/bot/engine'
-import { EXPRESSIONS, EXPRESSION_BY_ID, type ExpressionId } from '@/bot/expressions'
-import { SHAPE_BY_ID } from '@/bot/skins'
-import { STATE_BY_ID } from '@/bot/states'
+import { BotEngine } from 'bloub-core/engine'
+import { EXPRESSIONS, EXPRESSION_BY_ID, type ExpressionId } from 'bloub-core/expressions'
+import { SHAPE_BY_ID } from 'bloub-core/skins'
+import { STATE_BY_ID } from 'bloub-core/states'
 import {
   HUMEURS,
   lookTarget,

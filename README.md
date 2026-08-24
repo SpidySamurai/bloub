@@ -66,7 +66,7 @@ regenerate the extracted profiles.
 
 ## How it's put together
 
-`src/bot/` is framework-free and clock-free: `engine.sample(t)` is a pure
+`core/src/` — published as the **`bloub-core`** package — is framework-free and clock-free: `engine.sample(t)` is a pure
 function of time. Pausing, resuming, jumping to an arbitrary date and running
 tests all produce the same image, which is what makes the frozen state board and
 the DOM-less test suite possible.

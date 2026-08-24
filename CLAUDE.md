@@ -25,7 +25,7 @@ success criterion here.
 
 The verified traps that must not be "corrected" are listed in
 [docs/measurements.md](docs/measurements.md). Read it before touching a number in
-`src/bot/`.
+`core/src/`.
 
 One deliberate exception: **`--ink` (`styles.css`) is the interface colour, chosen,
 not measured**, a night blue. The video's black is the bot's, in `skins.ts`
@@ -35,7 +35,7 @@ not measured**, a night blue. The video's black is the bot's, in `skins.ts`
 
 Details and the reasoning behind each are in [docs/](docs/):
 
-- **`src/bot/` has no framework and no clock.** `engine.sample(t)` is a pure
+- **`core/src/` has no framework and no clock.** `engine.sample(t)` is a pure
   function of time. That's what makes `frozenAt`, the state board and the
   DOM-less tests work. No real-time state, no `Date.now()`, no Vue import. And
   **`sample()` must not mutate**: purging a stale previous state during playback
@@ -49,7 +49,7 @@ Details and the reasoning behind each are in [docs/](docs/):
   a radial profile, or `profileFromPolygon`.
 - **The eyes are holes in a `<mask>`**, not white shapes on top. That's what makes
   them clip against the silhouette on their own.
-- **The render frame lives in `src/bot/repere.ts`**: `RAYON` (100) and `DEMI_VIEWBOX`
+- **The render frame lives in `core/src/repere.ts`**: `RAYON` (100) and `DEMI_VIEWBOX`
   (158) define what `sample()` returns, so they can't sit in a `<script setup>` where
   nothing can import them — `export.ts` used to redeclare one by hand. The Vue component
   is a client of the engine, not its definition.
@@ -58,7 +58,7 @@ Details and the reasoning behind each are in [docs/](docs/):
   pastille. A new element anchored to the outline needs the same treatment.
 - **That pro-rata places the eye's centre, not the eye.** Since the margin in front of the
   edge is multiplied by the same factor, a narrow shape pushed the eye out through the mask.
-  `src/bot/eyefit.ts` adds a **common offset to both eyes** — a translation, so an isometry —
+  `core/src/eyefit.ts` adds a **common offset to both eyes** — a translation, so an isometry —
   only on a customiser shape. **It is a table built at import, not a solver in the render
   loop**, and that distinction *is* the fix: seven per-frame versions all trembled, because
   everything they read (gaze drift, pointer, expression mid-morph, which edge is nearest)
@@ -90,7 +90,7 @@ Details and the reasoning behind each are in [docs/](docs/):
 - **A tilt is only visible on an elongated eye.** `expressions.test.ts` enforces it:
   width/height outside `[0.6, 1.7]` for a tilt of 20°+, outside `[0.8, 1.25]` below.
   Already went wrong once.
-- **Labels don't live in `src/bot/`.** The catalogues carry ids and the display
+- **Labels don't live in `core/src/`.** The catalogues carry ids and the display
   resolves `t('states.orbit')`. Their ids are **literal unions** so the compiler
   checks that every entry has a label in all three languages. Adding a shape
   without its label doesn't compile.
@@ -157,7 +157,7 @@ invisible short of stepping through an MP4 frame by frame.
 
 ## Generated files
 
-`src/bot/profiles.ts` is produced by `tools/extract-profiles.py` from the video's
+`core/src/profiles.ts` is produced by `tools/extract-profiles.py` from the video's
 frames (see [docs/measurements.md](docs/measurements.md)). Don't edit it by hand;
 regenerate it.
 

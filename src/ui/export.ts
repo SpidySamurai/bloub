@@ -4,8 +4,8 @@
  * vit dans `capture.ts`, elle, parce qu'elle a besoin d'un canvas.
  */
 
-import { DEMI_VIEWBOX, RAYON } from '@/bot/repere'
-import { SHAPES } from '@/bot/skins'
+import { DEMI_VIEWBOX, RAYON } from 'bloub-core/repere'
+import { SHAPES } from 'bloub-core/skins'
 
 /**
  * Marge autour de la forme la plus large. Huit pour cent : c'est ce qui permet

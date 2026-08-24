@@ -1,4 +1,4 @@
-import { clampDuration, makeBlock, type Block } from '@/bot/cycles'
+import { clampDuration, makeBlock, type Block } from 'bloub-core/cycles'
 import { TOUR_TIME, tourLook } from './gaze'
 
 /**

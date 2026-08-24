@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import BloubBot from '@/components/BloubBot.vue'
 import BotTile from '@/components/BotTile.vue'
-import { EXPRESSIONS } from '@/bot/expressions'
-import { LAB_SHAPES, formeLabOuDefaut } from '@/bot/lab'
-import { COLORS, SHAPE_BY_ID } from '@/bot/skins'
+import { EXPRESSIONS } from 'bloub-core/expressions'
+import { LAB_SHAPES, formeLabOuDefaut } from 'bloub-core/lab'
+import { COLORS, SHAPE_BY_ID } from 'bloub-core/skins'
 import { t } from '@/i18n'
 import { computed, ref, watch } from 'vue'
 

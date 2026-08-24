@@ -26,6 +26,7 @@
     "test:watch": "vitest"
   },
   "dependencies": {
+    "bloub-core": "workspace:*",
     "mediabunny": "^1.54.0",
     "vue": "^3.5.41"
   },

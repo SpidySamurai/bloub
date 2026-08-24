@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import BotTile from '@/components/BotTile.vue'
-import { EXPRESSIONS } from '@/bot/expressions'
-import { COLORS, SHAPES } from '@/bot/skins'
+import { EXPRESSIONS } from 'bloub-core/expressions'
+import { COLORS, SHAPES } from 'bloub-core/skins'
 import { t } from '@/i18n'
 
 const shape = defineModel<string>('shape', { required: true })

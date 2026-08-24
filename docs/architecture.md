@@ -5,7 +5,7 @@
 `engine.sample(t)` is a pure function of time. That is what makes the `frozenAt`
 prop, the frozen state board and the DOM-less tests possible.
 
-So `src/bot/` must not gain internal state that depends on real time, nor
+So `core/src/` must not gain internal state that depends on real time, nor
 `Date.now()`, nor a Vue import. Vue code shared between components (composables,
 display settings) goes in `src/ui/` instead.
 
@@ -98,7 +98,7 @@ has no room up there — the gesture you would make by hand.
 
 ### The offset is a table, not a solver
 
-This is the whole fix, far more than the geometry it contains. `src/bot/eyefit.ts` solves
+This is the whole fix, far more than the geometry it contains. `core/src/eyefit.ts` solves
 the problem **once, at import**, and yields one entry per (shape, base-body state,
 expression).
 
@@ -163,7 +163,7 @@ Aiming for clearance left the eye exactly tangent, which shows. On the circle bo
 are the same, so the offset is `0, 0` by construction and the reference does not move —
 which is also what protects `public/favicon.svg`.
 
-`src/bot/skins.test.ts` locks all of it. It measures back-and-forths frame by frame rather
+`core/src/skins.test.ts` locks all of it. It measures back-and-forths frame by frame rather
 than speed — a morph moves the eyes fast anyway, trembling is going *and coming back* — it
 separates what would tremble permanently (resting drift, shape morph: no more than the
 circle) from a change of expression, and it sweeps **time as well as combinations**: one
@@ -202,7 +202,7 @@ wrong once, so `expressions.test.ts` now enforces a two-tier rule: the ratio mus
 fall outside `[0.6, 1.7]` for a tilt of 20° or more, and outside `[0.8, 1.25]`
 below that.
 
-## Labels don't live in `src/bot/`
+## Labels don't live in `core/src/`
 
 The catalogues (`states.ts`, `skins.ts`, `expressions.ts`) carry **ids**, and the
 display resolves `t('states.orbit')`. The corollary is that their ids are
@@ -212,7 +212,7 @@ its label in all three languages. Adding a shape without its label doesn't
 compile.
 
 There used to be one exception, `StateDef.hint`: a hardcoded French string per state that
-nothing read. It is gone — a label in `src/bot/` contradicts the rule above, and this
+nothing read. It is gone — a label in `core/src/` contradicts the rule above, and this
 field would have gone out in a public type.
 
 ## One state is not measured: `swirl`

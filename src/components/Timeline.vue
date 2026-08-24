@@ -14,8 +14,8 @@ import {
   uniqueName,
   type Block,
   type Cycle
-} from '@/bot/cycles'
-import type { StateId } from '@/bot/states'
+} from 'bloub-core/cycles'
+import type { StateId } from 'bloub-core/states'
 import { MAX_ZOOM, MIN_ZOOM, mmss } from '@/ui/timeline'
 import { nomDeCycle, pluriel, t } from '@/i18n'
 
