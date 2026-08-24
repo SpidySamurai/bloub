@@ -1,0 +1,47 @@
+{
+  "name": "bloub-core",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Le moteur de bloub, sans framework et sans horloge: engine.sample(t) est une fonction pure du temps.",
+  "license": "MIT",
+  "author": "Jérémy Perret",
+  "contributors": [
+    "SpidySamurai"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SpidySamurai/bloub.git",
+    "directory": "core"
+  },
+  "keywords": [
+    "svg",
+    "animation",
+    "avatar",
+    "morphing"
+  ],
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./*": {
+      "types": "./dist/*.d.ts",
+      "default": "./dist/*.js"
+    }
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "devDependencies": {
+    "typescript": "^5.9.3"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json"
+  }
+}
