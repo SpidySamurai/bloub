@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest'
-import { TAU } from './math'
-import { PROFILE_SAMPLES } from './profiles'
-import { radiusAtAngle, silhouette } from './shape'
-import { SHAPES } from './skins'
+import { TAU } from './math.js'
+import { PROFILE_SAMPLES } from './profiles.js'
+import { radiusAtAngle, silhouette } from './shape.js'
+import { SHAPES } from './skins.js'
 
 /**
  * `radiusAtAngle`, la fonction qui recolle sur le contour reel tout ce qui est pose « sur »

@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import BloubBot from '@/components/BloubBot.vue'
-import { DEFAULT_EXPRESSION } from '@/bot/expressions'
-import { DEFAULT_COLOR, DEFAULT_SHAPE } from '@/bot/skins'
-import type { StateId } from '@/bot/states'
+import { DEFAULT_EXPRESSION } from 'bloub-core/expressions'
+import { DEFAULT_COLOR, DEFAULT_SHAPE } from 'bloub-core/skins'
+import type { StateId } from 'bloub-core/states'
 
 /**
  * Vignette cliquable de la barre de droite : un bot fige, son nom dessous, une

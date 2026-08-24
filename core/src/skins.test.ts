@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest'
-import { BotEngine, type RenderedEye } from './engine'
-import { decalageDesYeux, POUR_TESTS } from './eyefit'
-import { EXPRESSIONS } from './expressions'
-import { DEFAULT_SHAPE, SHAPES, SHAPE_BY_ID, type BotShape } from './skins'
+import { BotEngine, type RenderedEye } from './engine.js'
+import { decalageDesYeux, POUR_TESTS } from './eyefit.js'
+import { EXPRESSIONS } from './expressions.js'
+import { DEFAULT_SHAPE, SHAPES, SHAPE_BY_ID, type BotShape } from './skins.js'
 
 /**
  * Les formes dont les yeux sont PERCES dans le corps.
@@ -14,7 +14,7 @@ import { DEFAULT_SHAPE, SHAPES, SHAPE_BY_ID, type BotShape } from './skins'
  * qui lui ne sait que se faire rogner.
  */
 const AVEC_VISAGE = SHAPES.filter((f) => !f.sansVisage && !f.yeuxPoses)
-import { STATES, type StateId } from './states'
+import { STATES, type StateId } from './states.js'
 
 /**
  * Les formes du personnalisateur, mesurees contre le corps qu'elles remplacent.

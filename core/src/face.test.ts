@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { EYE_H, EYE_SPLIT, EYE_W, REST_GAZE, eyePoses, type HeadGaze } from './face'
+import { EYE_H, EYE_SPLIT, EYE_W, REST_GAZE, eyePoses, type HeadGaze } from './face.js'
 
 /**
  * Valeurs relevees image par image sur la video de reference (unites : rayon de

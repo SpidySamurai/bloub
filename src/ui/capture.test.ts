@@ -1,10 +1,10 @@
 // @vitest-environment happy-dom
 import { describe, expect, it } from 'vitest'
-import { BotEngine } from '@/bot/engine'
-import { blockAt, defaultCycle, offsetOf, type Block } from '@/bot/cycles'
-import { RAYON } from '@/bot/repere'
-import { SHAPE_BY_ID } from '@/bot/skins'
-import { EXPRESSION_BY_ID } from '@/bot/expressions'
+import { BotEngine } from 'bloub-core/engine'
+import { blockAt, defaultCycle, offsetOf, type Block } from 'bloub-core/cycles'
+import { RAYON } from 'bloub-core/repere'
+import { SHAPE_BY_ID } from 'bloub-core/skins'
+import { EXPRESSION_BY_ID } from 'bloub-core/expressions'
 import { ouvreCycle } from './capture'
 import { DEMI_ECRAN, viewBoxExport } from './export'
 

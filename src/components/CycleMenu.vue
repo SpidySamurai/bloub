@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onBeforeUnmount, ref, watch } from 'vue'
-import type { Cycle } from '@/bot/cycles'
+import type { Cycle } from 'bloub-core/cycles'
 import { nomDeCycle, t } from '@/i18n'
 
 /**

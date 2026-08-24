@@ -9,8 +9,8 @@ import {
   STEP,
   totalDuration,
   type Block
-} from '@/bot/cycles'
-import { POSES, type StateId } from '@/bot/states'
+} from 'bloub-core/cycles'
+import { POSES, type StateId } from 'bloub-core/states'
 import { BASE_SCALE, clampZoom, ticksFor } from '@/ui/timeline'
 import { secondes, secondesCourtes, t } from '@/i18n'
 

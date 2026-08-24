@@ -1,4 +1,4 @@
-import { PROFILE_SAMPLES } from './profiles'
+import { PROFILE_SAMPLES } from './profiles.js'
 import {
   hullOfCircles,
   profileFromPolygon,
@@ -10,7 +10,7 @@ import {
   superellipseProfile,
   unionOfCirclesProfile,
   type Point
-} from './shape'
+} from './shape.js'
 
 /**
  * Formes et couleurs proposees par le personnalisateur du bot.

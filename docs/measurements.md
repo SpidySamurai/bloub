@@ -52,13 +52,13 @@ states concerned. The forced blink lasts 0.2 s; the scheduled idle blink is
 
 ## Regenerating the profiles
 
-`src/bot/profiles.ts` is generated from the video's frames. Don't edit it by hand.
+`core/src/profiles.ts` is generated from the video's frames. Don't edit it by hand.
 
 ```bash
 mkdir -p frames
 ffmpeg -i reference.mp4 -vf fps=10 frames/h_%04d.png
 pip install numpy pillow
-python tools/extract-profiles.py frames/ > src/bot/profiles.ts
+python tools/extract-profiles.py frames/ > core/src/profiles.ts
 ```
 
 The script composes exact filenames (`h_0164.png` and friends, zero-padded to

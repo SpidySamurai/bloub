@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Regenere src/bot/profiles.ts a partir des images de la video de reference.
+"""Regenere core/src/profiles.ts a partir des images de la video de reference.
 
 Les silhouettes du bot ne sont pas dessinees a la main : on les releve au pixel
 sur la video, par lancer de rayon sous-pixel depuis le centroide de la forme.
@@ -12,7 +12,7 @@ Prerequis :
     ffmpeg -i reference.mp4 -vf fps=10 frames/h_%04d.png
 
 Usage :
-    python tools/extract-profiles.py frames/ > src/bot/profiles.ts
+    python tools/extract-profiles.py frames/ > core/src/profiles.ts
 """
 import math
 import sys
